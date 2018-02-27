@@ -9,12 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.widget.Toast;
 
 import java.util.HashMap;
 
 public class SessionManager {
     // User name (make variable public to access from outside)
-    public static final String KEY_NAME = "name";
+    public static final String KEY_EMPID = "emp_id";
     // Email address (make variable public to access from outside)
     public static final String KEY_EMAIL = "email";
     // Sharedpref file name
@@ -41,13 +42,13 @@ public class SessionManager {
     /**
      * Create login session
      */
-    public void createLoginSession(String email) {
+    public void createLoginSession(String emp_id, String email) {
 //    public void createLoginSession(String name, String email){
         // Storing login value as TRUE
         editor.putBoolean(IS_LOGIN, true);
 
-//        // Storing name in pref
-//        editor.putString(KEY_NAME, name);
+        // Storing name in pref
+        editor.putString(KEY_EMPID, emp_id);
 
         // Storing email in pref
         editor.putString(KEY_EMAIL, email);
@@ -71,10 +72,15 @@ public class SessionManager {
 
             // Add new Flag to start new Activity
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            Toast.makeText(_context, "Sign in to Continue...", Toast.LENGTH_SHORT).show();
 
             // Staring Login Activity
             _context.startActivity(i);
         }
+//        else {
+//            user has already logged in
+//            Toast.makeText(_context,"User is Logged In ...",Toast.LENGTH_SHORT).show();
+//        }
 
     }
 
@@ -85,7 +91,7 @@ public class SessionManager {
     public HashMap<String, String> getUserDetails() {
         HashMap<String, String> user = new HashMap<String, String>();
         // user name
-//        user.put(KEY_NAME, pref.getString(KEY_NAME, null));
+        user.put(KEY_EMPID, pref.getString(KEY_EMPID, null));
 
         // user email id
         user.put(KEY_EMAIL, pref.getString(KEY_EMAIL, null));
@@ -102,16 +108,16 @@ public class SessionManager {
         editor.clear();
         editor.commit();
 
-        // After logout redirect user to Loing Activity
+        // After logout redirect user to SignIn Activity
         Intent i = new Intent(_context, SignInActivity.class);
         // Closing all the Activities
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         // Add new Flag to start new Activity
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
         // Staring Login Activity
         _context.startActivity(i);
+
     }
 
     /**

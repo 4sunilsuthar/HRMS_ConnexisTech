@@ -33,6 +33,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class SignInActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     static final int REQ_CODE = 9001;
@@ -51,6 +53,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         progressBar = findViewById(R.id.progress_bar);
         TextView textView = (TextView) btnSignIn.getChildAt(0);
         textView.setText(R.string.lbl_btn_google_sign);
+        sessionManager = new SessionManager(this);
 
 // Configure sign-in to request the user's ID, email address, and basic
 // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
@@ -72,18 +75,18 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         // Check for existing Google Sign In account, if the user is already signed in
 // the GoogleSignInAccount will be non-null.
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        Log.e(TAG, "Last SignIn Account is " + account.getEmail());
+//        Log.e(TAG, "Last SignIn Account is " + account.getEmail());
 
         //updateUI(account);
     }
 
     @Override
     public void onClick(View v) {
-        Log.e(TAG, "OnClickListener Invoked ..");
+//        Log.e(TAG, "OnClickListener Invoked ..");
 
         switch (v.getId()) {
             case R.id.btn_sign_in:
-                Log.e(TAG, "Sign in Button Called ...");
+//                Log.e(TAG, "Sign in Button Called ...");
                 signIn();
                 break;
         }
@@ -102,7 +105,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     private void handleResult(GoogleSignInResult result) {
 
         if (result.isSuccess()) {
-            Log.e(TAG, "Sign in Successful");
+            // Log.e(TAG, "Sign in Successful");
             GoogleSignInAccount account = result.getSignInAccount();
             if (account != null) {
                 //String name = account.getDisplayName(); // for Full Name
@@ -154,7 +157,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
             verify_email_url = "http://192.168.0.128/hrms_app/verify_email.php";
-            Log.e(TAG, "URL is :" + verify_email_url);
+//            Log.e(TAG, "URL is :" + verify_email_url);
 
         }
 
@@ -162,7 +165,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         protected String doInBackground(String... args) {
             String email;
             email = args[0];
-            Log.e(TAG, "email is : " + email);
+//            Log.e(TAG, "email is : " + email);
 
             try {
                 URL url = new URL(verify_email_url);
@@ -170,7 +173,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
                 OutputStream outputStream = httpURLConnection.getOutputStream();
-                Log.e(TAG, "OutputStream created");
+//                Log.e(TAG, "OutputStream created");
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 String data_string = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8");
                 bufferedWriter.write(data_string);
@@ -209,8 +212,12 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             progressBar.setVisibility(View.GONE);
             Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
             if (result != null) {
-                sessionManager.createLoginSession(result); //shared preference created and email is set to current user email value
+                String[] values = result.split(",");
+                Log.e(TAG, "Values Are : " + Arrays.toString(values));
+
+                sessionManager.createLoginSession(values[0], values[1]); //shared preference created and email is set to current user email value
                 Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
+                Log.e(TAG, "Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
 //                Toast.makeText(getApplicationContext(), "You Are An ADMIN man", Toast.LENGTH_LONG).show();
             }
 

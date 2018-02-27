@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -67,6 +68,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
         imgCompanyLogo = findViewById(R.id.ImgLogo);
         imgAppLogo = findViewById(R.id.imgAppLogo);
         tvHeading = findViewById(R.id.tvHeading);
+        sessionManager = new SessionManager(this);
         //for the action bar back button
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -88,7 +90,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         //check if user is logged in
-//        sessionManager.checkLogin();
+        Log.e(TAG, String.valueOf(sessionManager.getUserDetails()));
+        sessionManager.checkLogin();
 
     }
 
@@ -201,16 +204,16 @@ public class StoriesUploadActivity extends AppCompatActivity {
             if (txtMsg.isEmpty()) {
                 txtMsg = null;
             }
+            //get emp_id from the shared preference obj
+            HashMap<String, String> userDetails = sessionManager.getUserDetails();
+            Log.e(TAG, "emp_id is : " + userDetails.get("emp_id"));
 
-//            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getBaseContext());
-//
-//            Log.e(TAG,"UserID is : "+account.getId()+" User Email is :"+account.getEmail()+" ID Token is "+account.getIdToken());
             //add more values here to be uploaded to the server
             HashMapParams.put("date", mCurrentDate);
             HashMapParams.put("time", mCurrentTime);
             HashMapParams.put("text_message", txtMsg);
             HashMapParams.put("image_url", convertImage);
-            HashMapParams.put("added_by", "1");
+            HashMapParams.put("added_by", userDetails.get("emp_id"));
 //            HashMapParams.put("is_active", "true");
             //returning data to the server as a String
             return imageProcessClass.ImageHttpRequest(ServerUploadPathURL, HashMapParams);
