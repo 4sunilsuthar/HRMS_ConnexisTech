@@ -40,6 +40,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     SignInButton btnSignIn;
     GoogleApiClient googleApiClient;
     ProgressBar progressBar;
+    SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 // the GoogleSignInAccount will be non-null.
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         Log.e(TAG, "Last SignIn Account is " + account.getEmail());
+
         //updateUI(account);
     }
 
@@ -118,7 +120,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         if (email != null) {
             //google sign in successful
             //now authenticate the user with the database
-            Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
+            //Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
             BackgroundTask backgroundTask = new BackgroundTask(this);
             backgroundTask.execute(email);//pass user email and verify it
 
@@ -207,7 +209,9 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             progressBar.setVisibility(View.GONE);
             Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
             if (result != null) {
-                Toast.makeText(getApplicationContext(), "You Are An ADMIN man", Toast.LENGTH_LONG).show();
+                sessionManager.createLoginSession(result); //shared preference created and email is set to current user email value
+                Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
+//                Toast.makeText(getApplicationContext(), "You Are An ADMIN man", Toast.LENGTH_LONG).show();
             }
 
         }

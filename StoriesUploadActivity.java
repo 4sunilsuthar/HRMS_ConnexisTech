@@ -11,7 +11,6 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -44,7 +43,7 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 public class StoriesUploadActivity extends AppCompatActivity {
-    private static final String TAG = "StoriesUploadActivity";
+    private static final String TAG = "StoriesUploadActivity"; //for debugging
     EditText edPostTextMsg;
     Button btnUploadImg, btnUploadPost, btnCancel;
     ImageView imgPostPreview, imgCompanyLogo, imgAppLogo;
@@ -53,6 +52,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
     boolean check = true;
     ProgressDialog progressDialog;
     String ServerUploadPathURL = "http://192.168.0.128/hrms_app/img_upload_to_server.php";
+    SessionManager sessionManager;
     private String convertImage;
 
     @Override
@@ -84,6 +84,14 @@ public class StoriesUploadActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //check if user is logged in
+//        sessionManager.checkLogin();
+
+    }
+
     //for back button on the title bar
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -108,11 +116,10 @@ public class StoriesUploadActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
 //                get Image URL
                 Uri resultUri = result.getUri();
-//                Log.e(TAG, "Image URL is : " + resultUri);
+
                 try {
                     bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), resultUri);
                     imgPostPreview.setImageBitmap(bitmap);
-//                    Log.e(TAG, "Image Preview Set Done..");
                     //hiding the logo and other views to show the image preview
                     imgCompanyLogo.setVisibility(View.GONE);
                     imgAppLogo.setVisibility(View.GONE);
@@ -131,6 +138,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
 
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
+                error.printStackTrace();
             }
         }
     }
@@ -138,8 +146,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
     public void ImageUploadToServerFunction() {
         //before uploading the story check the validations and then proceed accordingly...
 
-        //Toast.makeText(this, "Uploading Post Funciton Called ", Toast.LENGTH_SHORT).show();
-//        Log.e(TAG,"Uploading post Function Called...");
+        //Toast.makeText(this, "Uploading Post Function Called ", Toast.LENGTH_SHORT).show();
+
 
         //validations here
 
@@ -147,9 +155,9 @@ public class StoriesUploadActivity extends AppCompatActivity {
             Toast.makeText(this, "Nothing to Upload...", Toast.LENGTH_SHORT).show();
             return;// not performing any background task
         }
-        Log.e(TAG, "My BitMap is : " + bitmap);
+
         if (bitmap != null) {
-            Log.e(TAG, "Hey Image is Not Null lets Compress it..and Call background Task");
+
             ByteArrayOutputStream byteArrayOutputStreamObject;
             byteArrayOutputStreamObject = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStreamObject);
@@ -157,12 +165,9 @@ public class StoriesUploadActivity extends AppCompatActivity {
             convertImage = Base64.encodeToString(byteArrayVar, Base64.DEFAULT);
         }
 
-        //calling the background task  to do execution on secondary thread
+        //calling the background task  to begin execution on secondary thread
         AsyncTaskUploadClass AsyncTaskUploadClassOBJ = new AsyncTaskUploadClass();
         AsyncTaskUploadClassOBJ.execute();
-//          Log.e(TAG,"AsyncTask Calling Done...");
-
-
         //end of if validation block
     }
 
@@ -188,121 +193,77 @@ public class StoriesUploadActivity extends AppCompatActivity {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             //get current date
             String mCurrentDate = sdf.format(cal.getTime());
-//            Log.e(TAG,"Current Date is : " +mCurrentDate);
+
             sdf = new SimpleDateFormat("HH:mm:ss", Locale.US);
             String mCurrentTime = sdf.format(cal.getTime());
-//            Log.e(TAG,"Current Time is : " +mCurrentTime);
+
             String txtMsg = edPostTextMsg.getText().toString();
-            Log.e(TAG, "Text is : " + txtMsg);
-
             if (txtMsg.isEmpty()) {
-                Log.e(TAG, "Text isEmpty() Called.. : ");
                 txtMsg = null;
-
             }
 
-            Log.e(TAG, "ConvertImg is : " + convertImage);
-            if (convertImage == null) {
-                Log.e(TAG, "Only uploading text story...Because image is null : ");
-            }
-//            Log.e(TAG,"Text Msg is : " +txtMsg);
-//            Log.e(TAG,"convertImage URL is : " +convertImage);
+//            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getBaseContext());
+//
+//            Log.e(TAG,"UserID is : "+account.getId()+" User Email is :"+account.getEmail()+" ID Token is "+account.getIdToken());
             //add more values here to be uploaded to the server
             HashMapParams.put("date", mCurrentDate);
             HashMapParams.put("time", mCurrentTime);
             HashMapParams.put("text_message", txtMsg);
             HashMapParams.put("image_url", convertImage);
             HashMapParams.put("added_by", "1");
-            HashMapParams.put("is_active", "true");
+//            HashMapParams.put("is_active", "true");
             //returning data to the server as a String
             return imageProcessClass.ImageHttpRequest(ServerUploadPathURL, HashMapParams);
         }
 
         @Override
         protected void onPostExecute(String string1) {
-//            Log.e(TAG,"onPostExecute() called ");
-            Log.e(TAG, "String response is : " + string1);
-
+//            Log.e(TAG, "String response is : " + string1);
             super.onPostExecute(string1);
-
             // Dismiss the progress dialog after done uploading.
             progressDialog.dismiss();
-//            Log.e(TAG,"Progress Dialog Dismissed:");
-
             // Printing uploading success message coming from server on android app.
-            Toast.makeText(getApplicationContext(), string1, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), string1, Toast.LENGTH_SHORT).show();
             startActivity(new Intent(getApplicationContext(), AdminDashboardActivity.class));
             // Setting image as transparent after done uploading.
             //imgPostPreview.setImageResource(android.R.color.transparent);
-
-
         }
     }
 
     public class ImageProcessClass {
 
         String ImageHttpRequest(String requestURL, HashMap<String, String> PData) {
-
             StringBuilder stringBuilder = new StringBuilder();
-
             try {
-
                 URL url;
                 HttpURLConnection httpURLConnectionObject;
                 OutputStream OutPutStream;
                 BufferedWriter bufferedWriterObject;
                 BufferedReader bufferedReaderObject;
                 int RC;
-
                 url = new URL(requestURL);
-//                Log.e(TAG,"URL Given is : "+requestURL);
-//                Log.e(TAG,"URL Created is : "+url);
                 httpURLConnectionObject = (HttpURLConnection) url.openConnection();
-//                Log.e(TAG,"httpURLConnection Opened...");
-
                 httpURLConnectionObject.setReadTimeout(19000);
-//                Log.e(TAG,"ReadTimeOut set ...");
-
                 httpURLConnectionObject.setConnectTimeout(19000);
-//                Log.e(TAG,"Connect Timeout set");
-
                 httpURLConnectionObject.setRequestMethod("POST");
-
                 httpURLConnectionObject.setDoInput(true);
-
                 httpURLConnectionObject.setDoOutput(true);
-
                 OutPutStream = httpURLConnectionObject.getOutputStream();
-//                Log.e(TAG,"OutputStream Created...");
-
                 bufferedWriterObject = new BufferedWriter(new OutputStreamWriter(OutPutStream, "UTF-8"));
-
                 bufferedWriterObject.write(bufferedWriterDataFN(PData));
-//                Log.e(TAG,"Data Written through BufferedWriter...");
-
                 bufferedWriterObject.flush();
-
                 bufferedWriterObject.close();
-
                 OutPutStream.close();
-
                 RC = httpURLConnectionObject.getResponseCode();
-//                Log.e(TAG,"httpURLConnection Response Code is: "+RC);
 
                 if (RC == HttpsURLConnection.HTTP_OK) {
-
                     bufferedReaderObject = new BufferedReader(new InputStreamReader(httpURLConnectionObject.getInputStream()));
-
                     stringBuilder = new StringBuilder();
-
                     String RC2;
-
                     while ((RC2 = bufferedReaderObject.readLine()) != null) {
-
                         stringBuilder.append(RC2);
                     }
                 }
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -312,19 +273,14 @@ public class StoriesUploadActivity extends AppCompatActivity {
         private String bufferedWriterDataFN(HashMap<String, String> HashMapParams) throws UnsupportedEncodingException {
 
             StringBuilder stringBuilderObject;
-
             stringBuilderObject = new StringBuilder();
-
             for (Map.Entry<String, String> KEY : HashMapParams.entrySet()) {
-
                 if (check)
-
                     check = false;
                 else
                     stringBuilderObject.append("&");
 
                 stringBuilderObject.append(URLEncoder.encode(KEY.getKey(), "UTF-8"));
-
                 stringBuilderObject.append("=");
 
                 if (KEY.getValue() == null) {
@@ -333,11 +289,9 @@ public class StoriesUploadActivity extends AppCompatActivity {
                     stringBuilderObject.append(URLEncoder.encode(KEY.getValue(), "UTF-8"));
                 }
             }
-//            Log.e(TAG,"My StringBuilder Object is : "+stringBuilderObject.toString());
-            Log.e(TAG, "String Builder is : " + stringBuilderObject.toString());
+//            Log.e(TAG, "Data Sent is : " + stringBuilderObject.toString());
             return stringBuilderObject.toString();
         }
-
     }
 }
 
