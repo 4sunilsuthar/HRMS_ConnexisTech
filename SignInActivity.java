@@ -21,6 +21,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -60,7 +62,9 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
-        googleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, gso).build();
+        googleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
     }
 
@@ -89,6 +93,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 //                Log.e(TAG, "Sign in Button Called ...");
                 signIn();
                 break;
+
         }
     }
 
@@ -99,6 +104,13 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     }
 
     private void signout() {
+
+        Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
+            @Override
+            public void onResult(@NonNull Status status) {
+//                updateUI();
+            }
+        });
 
     }
 
@@ -182,16 +194,17 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                 outputStream.close();
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"));
-                String result = "", line;
+                StringBuilder result = new StringBuilder();
+                String line;
 
                 while ((line = bufferedReader.readLine()) != null) {
-                    result += line;
+                    result.append(line);
                 }
                 Log.e(TAG, "result is : " + result);
                 bufferedReader.close();
                 inputStream.close();
                 httpURLConnection.disconnect();
-                return result;
+                return result.toString();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -28,12 +29,12 @@ import java.util.concurrent.TimeUnit;
 public class LeaveRequestFragment extends Fragment {
     private static final String TAG = "LeaveRequestFragment";
     EditText edDateFrom, edDateTo;
-    TextView totalLeaveDays;
     java.util.Calendar mDateFrom, mDateTo;
+    private TextView totalLeaveDays;
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         //returning the view --> return view
         return inflater.inflate(R.layout.fragment_leave_request, container, false);
 
@@ -51,11 +52,13 @@ public class LeaveRequestFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        totalLeaveDays = getView().findViewById(R.id.tvTotalLeaveDays);
+
         edDateFrom = getView().findViewById(R.id.edDateFrom);
         edDateTo = getView().findViewById(R.id.edDateTo);
+        totalLeaveDays = getView().findViewById(R.id.tvTotalLeaveDays);
+//        totalLeaveDays = getView().findViewById(R.id.tvTotalLeaveDays);
         //disable the edDateTo to get minDate from the edDateFrom datePicker
         edDateTo.setEnabled(false);
         final Spinner spinLeaveType = getView().findViewById(R.id.leave_type_spinner);
@@ -136,7 +139,7 @@ public class LeaveRequestFragment extends Fragment {
                         edDateTo.setText(formattedDate);
                         //calculate the date difference and show it as total days
                         int days = daysBetween(mDateFrom, mDateTo);
-                        totalLeaveDays.setText(days);
+                        totalLeaveDays.setText(String.valueOf(days));
 
                     }
                 }, year, month, day);
