@@ -7,8 +7,8 @@ package com.lms.admin.lms;
 public class PostStory {
     private String time, image, textMsg, username, profileImg, date;
 
-    public PostStory(String date, String time, String textMsg, String image, String username) {
-        this.time = time;
+    public PostStory(String date, String textMsg, String image, String username) {
+//        this.time = time;
         this.image = image;
         this.textMsg = textMsg;
         this.username = username;
@@ -62,5 +62,17 @@ public class PostStory {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    @Override
+    public String toString() {
+        return "PostStory{" +
+                "time='" + time + '\'' +
+                ", image='" + image + '\'' +
+                ", textMsg='" + textMsg + '\'' +
+                ", username='" + username + '\'' +
+                ", profileImg='" + profileImg + '\'' +
+                ", date='" + date + '\'' +
+                '}';
     }
 }

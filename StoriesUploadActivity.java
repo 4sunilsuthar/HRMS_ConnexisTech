@@ -44,6 +44,8 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 public class StoriesUploadActivity extends AppCompatActivity {
+    public static final int RequestPermissionCode = 1;
+
     private static final String TAG = "StoriesUploadActivity"; //for debugging
     EditText edPostTextMsg;
     Button btnUploadImg, btnUploadPost, btnCancel;
@@ -199,21 +201,24 @@ public class StoriesUploadActivity extends AppCompatActivity {
 
             sdf = new SimpleDateFormat("HH:mm:ss", Locale.US);
             String mCurrentTime = sdf.format(cal.getTime());
-
+            Log.e(TAG, "current Date is : " + mCurrentDate);
+            Log.e(TAG, "current Time is : " + mCurrentTime);
             String txtMsg = edPostTextMsg.getText().toString();
             if (txtMsg.isEmpty()) {
                 txtMsg = null;
             }
             //get emp_id from the shared preference obj
             HashMap<String, String> userDetails = sessionManager.getUserDetails();
-            Log.e(TAG, "emp_id is : " + userDetails.get("emp_id"));
+//            Log.e(TAG, "emp_id is : " + userDetails.get("emp_id"));
 
             //add more values here to be uploaded to the server
             HashMapParams.put("date", mCurrentDate);
-            HashMapParams.put("time", mCurrentTime);
             HashMapParams.put("text_message", txtMsg);
+            HashMapParams.put("times", mCurrentTime);
             HashMapParams.put("image_url", convertImage);
             HashMapParams.put("added_by", userDetails.get("emp_id"));
+
+//            Log.e(TAG,"time is "+HashMapParams.get("times"));
 //            HashMapParams.put("is_active", "true");
             //returning data to the server as a String
             return imageProcessClass.ImageHttpRequest(ServerUploadPathURL, HashMapParams);
@@ -227,6 +232,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
             progressDialog.dismiss();
             // Printing uploading success message coming from server on android app.
             Toast.makeText(getApplicationContext(), string1, Toast.LENGTH_SHORT).show();
+//            Log.e(TAG,"msg is : "+string1);
+
             startActivity(new Intent(getApplicationContext(), AdminDashboardActivity.class));
             // Setting image as transparent after done uploading.
             //imgPostPreview.setImageResource(android.R.color.transparent);
@@ -254,6 +261,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
                 OutPutStream = httpURLConnectionObject.getOutputStream();
                 bufferedWriterObject = new BufferedWriter(new OutputStreamWriter(OutPutStream, "UTF-8"));
                 bufferedWriterObject.write(bufferedWriterDataFN(PData));
+//                Log.e(TAG,"map object is : "+PData.toString());
+
                 bufferedWriterObject.flush();
                 bufferedWriterObject.close();
                 OutPutStream.close();
@@ -277,6 +286,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
 
             StringBuilder stringBuilderObject;
             stringBuilderObject = new StringBuilder();
+//            Log.e(TAG,"HashMapParams is : "+HashMapParams.toString());
             for (Map.Entry<String, String> KEY : HashMapParams.entrySet()) {
                 if (check)
                     check = false;

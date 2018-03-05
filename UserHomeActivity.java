@@ -122,7 +122,7 @@ public class UserHomeActivity extends AppCompatActivity
             Intent intent = new Intent(getApplicationContext(), SignInActivity.class);
             startActivity(intent);
         }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

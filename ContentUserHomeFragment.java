@@ -26,8 +26,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 
 public class ContentUserHomeFragment extends Fragment {
@@ -60,6 +63,77 @@ public class ContentUserHomeFragment extends Fragment {
         BackgroundTask backgroundTask = new BackgroundTask(getContext());
         backgroundTask.execute();
 
+    }
+
+    /**
+     * Get a diff between two dates
+     *
+     * @param postDate the old date
+     * @return the diff value, in the minutes, hours, days, or date
+     */
+    public String getDateDiff(String date, String time) {
+        try {
+            final int SECOND = 1000;
+            final int MINUTE = 60 * SECOND;
+            final int HOUR = 60 * MINUTE;
+            final int DAY = 24 * HOUR;
+
+            //get date and time string and calculate difference bw now and post date time
+            //get now value
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", new Locale("hi", "in"));
+            String postDate = date + " " + time;
+            Log.e(TAG, "postDate is : " + postDate);
+            Date pDate = dateFormat.parse(postDate);
+
+            String currentDate = dateFormat.format(new Date().getTime());
+            Date cDate = dateFormat.parse(currentDate);
+            Log.e(TAG, "Current date is : " + currentDate);
+            Log.e(TAG, "Current date timestamp is : " + cDate.getTime());
+            Log.e(TAG, "Post date timestamp is : " + pDate.getTime());
+            //find difference between postTime and currentTime
+            long ms = (cDate.getTime()) - pDate.getTime();
+            Log.e(TAG, "difference bw timestamps : " + ms);
+
+
+
+            /*
+            Log.e(TAG,"Current timestamp : "+ new Date().getTime());
+            Log.e(TAG,"post timestamp : "+postDate);
+            Log.e(TAG,"difference bw timestamps : "+ms);
+
+            */
+
+
+            StringBuffer text = new StringBuffer("");
+            //getting the locale date format like hindi or japanese
+//            Log.e(TAG, " date and month is @@ -> " + new SimpleDateFormat("dd MMMM",new Locale("hi","IN")).format(postDate));
+
+            if (ms > 4 * DAY) {
+                text.append(new SimpleDateFormat("dd MMMM", Locale.ENGLISH).format(postDate));
+            } else if (ms > DAY) {
+                if (ms / DAY == 1)
+                    text.append(" Yesterday");
+                else
+                    text.append(ms / DAY).append(" DAYS AGO");
+            } else if (ms > HOUR) {
+                if (ms / HOUR == 1)
+                    text.append(ms / HOUR).append(" HOUR AGO");
+                else
+                    text.append(ms / HOUR).append(" HOURS AGO");
+            } else if (ms > MINUTE) {
+                if (ms / MINUTE == 1)
+                    text.append(ms / MINUTE).append(" MINUTE AGO");
+                else
+                    text.append(ms / MINUTE).append(" MINUTES AGO");
+            } else if (ms > SECOND) {
+                text.append(" JUST NOW");
+            }
+            Log.e(TAG, "time is " + text);
+            return String.valueOf(text);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     // Background Task Class just fetching json data here
@@ -132,9 +206,9 @@ public class ContentUserHomeFragment extends Fragment {
         @Override
         protected void onPostExecute(String result) {
             //result is ready now parse it and sent it to the adapter
-//        Log.e("ABCErr","Latest JSON received is : "+json_string);
+            Log.e("ABCErr", "Latest JSON received is : " + result);
             try {
-                Log.e(TAG, "result is : " + result);
+//                Log.e(TAG, "result is : " + result);
                 jsonObject = new JSONObject(result);
                 jsonArray = jsonObject.getJSONArray("server_response");
                 int count = 0;
@@ -146,16 +220,17 @@ public class ContentUserHomeFragment extends Fragment {
                     time = jsonObject2.getString("time");
                     text_message = jsonObject2.getString("text_message");
                     image_url = jsonObject2.getString("image_url");
-                    added_by = jsonObject2.getString("added_by");
-                    //set this to the Adapter
-                    /*
-                    Contacts contacts = new Contacts(name, email, mobile);
-                    contactsAdapter.add(contacts);
-                    */
+                    added_by = jsonObject2.getString("user_name");
                     count++;
-                    PostStory postStory = new PostStory(date, time, text_message, image_url, added_by);
+                    //call the dateDiff function to set value of date differences
+                    String diff = getDateDiff(date, time);
+                    Log.e(TAG, "dateDiff msg is : " + diff);
+
+                    //set this to the Adapter
+                    PostStory postStory = new PostStory(diff, text_message, image_url, added_by);
                     postStoryList.add(postStory);
-                    Log.e(TAG, "in onPostExecute() method ...setting the adapter.. ");
+//                    Log.e(TAG,"Story is : "+postStory.toString());
+//                    Log.e(TAG, "in onPostExecute() method ...setting the adapter.. ");
                     postStoryAdapter = new PostStoryAdapter(context, postStoryList);
                     mRecyclerView.setAdapter(postStoryAdapter);
                 }
@@ -165,5 +240,6 @@ public class ContentUserHomeFragment extends Fragment {
         }
 
     }
+
 
 }

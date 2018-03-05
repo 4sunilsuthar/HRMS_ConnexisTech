@@ -1,10 +1,10 @@
 package com.lms.admin.lms;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +35,7 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
     @Override
     public PostStoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.post_row_card, null);
+        @SuppressLint("InflateParams") View view = inflater.inflate(R.layout.post_row_card, null);
         return new PostStoryViewHolder(view);
     }
 
@@ -48,10 +48,10 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
         holder.postTxtMsg.setText(postStory.getTextMsg());
 //        Log.e(TAG,"Setting Image for Post");
         Picasso.with(context).load(postStory.getImage()).into(holder.postImg);
-        Log.e(TAG, "Post image url is : " + postStory.getImage());
+//        Log.e(TAG, "Post image url is : " + postStory.getImage());
         holder.postImg.setImageURI(Uri.parse(postStory.getImage()));
 
-        Log.e(TAG, "Profile image url is : " + postStory.getProfileImg());
+//        Log.e(TAG, "Profile image url is : " + postStory.getProfileImg());
         Picasso.with(context).load(postStory.getProfileImg()).into(holder.postUserProfile);
 
     }
@@ -73,7 +73,6 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
             postUsername = itemView.findViewById(R.id.post_by_user);
             postDate = itemView.findViewById(R.id.post_date_time);
             postTxtMsg = itemView.findViewById(R.id.post_text_msg);
-
         }
     }
 }
