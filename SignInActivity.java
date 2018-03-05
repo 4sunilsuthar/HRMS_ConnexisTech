@@ -204,7 +204,8 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                 bufferedReader.close();
                 inputStream.close();
                 httpURLConnection.disconnect();
-                return result.toString();
+
+                return result.toString().trim();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
