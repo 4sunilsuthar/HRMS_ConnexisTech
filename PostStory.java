@@ -7,13 +7,13 @@ package com.lms.admin.lms;
 public class PostStory {
     private String time, image, titleMsg, textMsg, username, profileImg, date;
 
-    public PostStory(String date, String titleMsg, String textMsg, String image, String username) {
+    public PostStory(String date, String titleMsg, String textMsg, String image, String username, String profileImg) {
 //        this.time = time;
         this.image = image;
         this.titleMsg = titleMsg;
         this.textMsg = textMsg;
         this.username = username;
-        this.profileImg = image;
+        this.profileImg = profileImg;
         this.date = date;
 
 

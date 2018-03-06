@@ -47,13 +47,12 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
         holder.postDate.setText(postStory.getDate());
         holder.postTitleMsg.setText(postStory.getTitleMsg());
         holder.postTxtMsg.setText(postStory.getTextMsg());
-//        Log.e(TAG,"Setting Image for Post");
         Picasso.with(context).load(postStory.getImage()).into(holder.postImg);
-//        Log.e(TAG, "Post image url is : " + postStory.getImage());
-        holder.postImg.setImageURI(Uri.parse(postStory.getImage()));
-
-//        Log.e(TAG, "Profile image url is : " + postStory.getProfileImg());
         Picasso.with(context).load(postStory.getProfileImg()).into(holder.postUserProfile);
+        holder.postImg.setImageURI(Uri.parse(postStory.getImage()));
+        holder.postUserProfile.setImageURI(Uri.parse(postStory.getProfileImg()));
+//        Log.e(TAG, "Post image url is : " + postStory.getImage());
+//        Log.e(TAG, "Profile image url is : " + postStory.getProfileImg());
 
     }
 

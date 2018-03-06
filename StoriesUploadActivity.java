@@ -206,8 +206,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
 
             sdf = new SimpleDateFormat("HH:mm:ss", myLocale);
             String mCurrentTime = sdf.format(cal.getTime());
-            Log.e(TAG, "current Date is : " + mCurrentDate);
-            Log.e(TAG, "current Time is : " + mCurrentTime);
+//            Log.e(TAG, "current Date is : " + mCurrentDate);
+//            Log.e(TAG, "current Time is : " + mCurrentTime);
             String txtMsg = edPostTextMsg.getText().toString().trim();
             String titleMsg = edPostTitle.getText().toString().trim();
             if (txtMsg.isEmpty()) {
@@ -229,7 +229,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
             HashMapValues.put("image_url", convertImage);
             HashMapValues.put("added_by", userDetails.get("emp_id"));
 
-//            Log.e(TAG,"time is "+HashMapValues.get("times"));
+            Log.e(TAG, "time is " + HashMapValues.get("times"));
 //            HashMapValues.put("is_active", "true");
             //returning data to the server as a String
             return imageProcessClass.ImageHttpRequest(ServerUploadPathURL, HashMapValues);

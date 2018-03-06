@@ -62,13 +62,13 @@ public class ContentUserHomeFragment extends Fragment {
         //        get values in the Adapter from the background task
         BackgroundTask backgroundTask = new BackgroundTask(getContext());
         backgroundTask.execute();
-
     }
 
     /**
      * Get a diff between two dates
      *
-     * @param postDate the old date
+     * @param date the post date
+     * @param time the post time
      * @return the diff value, in the minutes, hours, days, or date
      */
     public String getDateDiff(String date, String time) {
@@ -82,34 +82,27 @@ public class ContentUserHomeFragment extends Fragment {
             //get now value
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", new Locale("hi", "in"));
             String postDate = date + " " + time;
-            Log.e(TAG, "postDate is : " + postDate);
             Date pDate = dateFormat.parse(postDate);
 
             String currentDate = dateFormat.format(new Date().getTime());
             Date cDate = dateFormat.parse(currentDate);
-            Log.e(TAG, "Current date is : " + currentDate);
+//            Log.e(TAG, "Current date is : " + currentDate);
             Log.e(TAG, "Current date timestamp is : " + cDate.getTime());
             Log.e(TAG, "Post date timestamp is : " + pDate.getTime());
             //find difference between postTime and currentTime
-            long ms = (cDate.getTime()) - pDate.getTime();
+            long ms2 = 43200000; //adding 12 hours (with milliseconds value ) to solve the problem of AM/PM
+            long ms = Math.abs((cDate.getTime() + ms2) - pDate.getTime());
             Log.e(TAG, "difference bw timestamps : " + ms);
 
 
 
-            /*
-            Log.e(TAG,"Current timestamp : "+ new Date().getTime());
-            Log.e(TAG,"post timestamp : "+postDate);
-            Log.e(TAG,"difference bw timestamps : "+ms);
-
-            */
-
-
             StringBuffer text = new StringBuffer("");
-            //getting the locale date format like hindi or japanese
+
+            // code for getting the locale date format like hindi or japanese
 //            Log.e(TAG, " date and month is @@ -> " + new SimpleDateFormat("dd MMMM",new Locale("hi","IN")).format(postDate));
 
             if (ms > 4 * DAY) {
-                text.append(new SimpleDateFormat("dd MMMM", Locale.ENGLISH).format(postDate));
+                text.append(new SimpleDateFormat("dd MMMM | hh:mm a", Locale.ENGLISH).format(pDate));//showing date and time directly
             } else if (ms > DAY) {
                 if (ms / DAY == 1)
                     text.append(" Yesterday");
@@ -212,7 +205,7 @@ public class ContentUserHomeFragment extends Fragment {
                 jsonObject = new JSONObject(result);
                 jsonArray = jsonObject.getJSONArray("server_response");
                 int count = 0;
-                String date, time, title_message, text_message, image_url, added_by;
+                String date, time, title_message, text_message, image_url, added_by, profile_image_url;
 
                 while (count < jsonArray.length()) {
                     JSONObject jsonObject2 = jsonArray.getJSONObject(count);
@@ -222,15 +215,15 @@ public class ContentUserHomeFragment extends Fragment {
                     text_message = jsonObject2.getString("text_message");
                     image_url = jsonObject2.getString("image_url");
                     added_by = jsonObject2.getString("user_name");
+                    profile_image_url = jsonObject2.getString("profile_img_url");
                     count++;
                     //call the dateDiff function to set value of date differences
                     String diff = getDateDiff(date, time);
-                    Log.e(TAG, "dateDiff msg is : " + diff);
-
+//                    Log.e(TAG, "dateDiff msg is : " + diff);
                     //set this to the Adapter
-                    PostStory postStory = new PostStory(diff, title_message, text_message, image_url, added_by);
+                    PostStory postStory = new PostStory(diff, title_message, text_message, image_url, added_by, profile_image_url);
                     postStoryList.add(postStory);
-//                    Log.e(TAG,"Story is : "+postStory.toString());
+//                    Log.e(TAG,"Story is : "+postStory.toString());s
 //                    Log.e(TAG, "in onPostExecute() method ...setting the adapter.. ");
                     postStoryAdapter = new PostStoryAdapter(context, postStoryList);
                     mRecyclerView.setAdapter(postStoryAdapter);
