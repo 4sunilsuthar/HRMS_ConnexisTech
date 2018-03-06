@@ -212,12 +212,13 @@ public class ContentUserHomeFragment extends Fragment {
                 jsonObject = new JSONObject(result);
                 jsonArray = jsonObject.getJSONArray("server_response");
                 int count = 0;
-                String date, time, text_message, image_url, added_by;
+                String date, time, title_message, text_message, image_url, added_by;
 
                 while (count < jsonArray.length()) {
                     JSONObject jsonObject2 = jsonArray.getJSONObject(count);
                     date = jsonObject2.getString("date");
                     time = jsonObject2.getString("time");
+                    title_message = jsonObject2.getString("title_message");
                     text_message = jsonObject2.getString("text_message");
                     image_url = jsonObject2.getString("image_url");
                     added_by = jsonObject2.getString("user_name");
@@ -227,7 +228,7 @@ public class ContentUserHomeFragment extends Fragment {
                     Log.e(TAG, "dateDiff msg is : " + diff);
 
                     //set this to the Adapter
-                    PostStory postStory = new PostStory(diff, text_message, image_url, added_by);
+                    PostStory postStory = new PostStory(diff, title_message, text_message, image_url, added_by);
                     postStoryList.add(postStory);
 //                    Log.e(TAG,"Story is : "+postStory.toString());
 //                    Log.e(TAG, "in onPostExecute() method ...setting the adapter.. ");

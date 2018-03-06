@@ -22,7 +22,7 @@ import java.util.List;
 public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.PostStoryViewHolder> {
 
     private static final String TAG = "PostStoryAdapter";
-    List<PostStory> postStoriesList;
+    private List<PostStory> postStoriesList;
     private Context context;
 
     PostStoryAdapter(Context context, List<PostStory> postStoriesList) {
@@ -45,6 +45,7 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
         PostStory postStory = postStoriesList.get(position);
         holder.postUsername.setText(postStory.getUsername());
         holder.postDate.setText(postStory.getDate());
+        holder.postTitleMsg.setText(postStory.getTitleMsg());
         holder.postTxtMsg.setText(postStory.getTextMsg());
 //        Log.e(TAG,"Setting Image for Post");
         Picasso.with(context).load(postStory.getImage()).into(holder.postImg);
@@ -63,7 +64,7 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
 
     class PostStoryViewHolder extends RecyclerView.ViewHolder {
         ImageView postImg, postUserProfile;
-        TextView postTxtMsg, postUsername, postDate;
+        TextView postTitleMsg, postTxtMsg, postUsername, postDate;
 
         PostStoryViewHolder(View itemView) {
             super(itemView);
@@ -73,6 +74,8 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
             postUsername = itemView.findViewById(R.id.post_by_user);
             postDate = itemView.findViewById(R.id.post_date_time);
             postTxtMsg = itemView.findViewById(R.id.post_text_msg);
+            postTitleMsg = itemView.findViewById(R.id.post_title_msg);
+
         }
     }
 }

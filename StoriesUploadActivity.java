@@ -47,7 +47,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
     public static final int RequestPermissionCode = 1;
 
     private static final String TAG = "StoriesUploadActivity"; //for debugging
-    EditText edPostTextMsg;
+    EditText edPostTextMsg, edPostTitle;
     Button btnUploadImg, btnUploadPost, btnCancel;
     ImageView imgPostPreview, imgCompanyLogo, imgAppLogo;
     TextView tvHeading;
@@ -63,6 +63,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stories_upload);
         edPostTextMsg = findViewById(R.id.edTextPost);
+        edPostTitle = findViewById(R.id.edTitlePost);
         btnUploadImg = findViewById(R.id.btnUploadImg);
         btnUploadPost = findViewById(R.id.btnPostStory);
         btnCancel = findViewById(R.id.btnCancelStory);
@@ -156,7 +157,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
 
         //validations here
 
-        if (TextUtils.isEmpty(edPostTextMsg.getText()) && imgPostPreview.getDrawable() == null) {
+        if (TextUtils.isEmpty(edPostTextMsg.getText()) && imgPostPreview.getDrawable() == null && edPostTitle.getText() == null) {
             Toast.makeText(this, "Nothing to Upload...", Toast.LENGTH_SHORT).show();
             return;// not performing any background task
         }
@@ -191,37 +192,47 @@ public class StoriesUploadActivity extends AppCompatActivity {
             //imageProcessClass to process the image
             ImageProcessClass imageProcessClass = new ImageProcessClass();
             //HashMap for values
-            HashMap<String, String> HashMapParams = new HashMap<>();
+            HashMap<String, String> HashMapValues = new HashMap<>();
 
             //finding values to be stored in the database
             Calendar cal = Calendar.getInstance();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            //creating Locale object for date formats
+            Locale myLocale = new Locale("en", "in");
+            Locale standardLocale = Locale.US;
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", myLocale);
             //get current date
             String mCurrentDate = sdf.format(cal.getTime());
 
-            sdf = new SimpleDateFormat("HH:mm:ss", Locale.US);
+            sdf = new SimpleDateFormat("HH:mm:ss", myLocale);
             String mCurrentTime = sdf.format(cal.getTime());
             Log.e(TAG, "current Date is : " + mCurrentDate);
             Log.e(TAG, "current Time is : " + mCurrentTime);
-            String txtMsg = edPostTextMsg.getText().toString();
+            String txtMsg = edPostTextMsg.getText().toString().trim();
+            String titleMsg = edPostTitle.getText().toString().trim();
             if (txtMsg.isEmpty()) {
                 txtMsg = null;
             }
+            if (titleMsg.isEmpty()) {
+                titleMsg = null;
+            }
+
             //get emp_id from the shared preference obj
             HashMap<String, String> userDetails = sessionManager.getUserDetails();
 //            Log.e(TAG, "emp_id is : " + userDetails.get("emp_id"));
 
             //add more values here to be uploaded to the server
-            HashMapParams.put("date", mCurrentDate);
-            HashMapParams.put("text_message", txtMsg);
-            HashMapParams.put("times", mCurrentTime);
-            HashMapParams.put("image_url", convertImage);
-            HashMapParams.put("added_by", userDetails.get("emp_id"));
+            HashMapValues.put("date", mCurrentDate);
+            HashMapValues.put("text_message", txtMsg);
+            HashMapValues.put("title_message", titleMsg);
+            HashMapValues.put("times", mCurrentTime);
+            HashMapValues.put("image_url", convertImage);
+            HashMapValues.put("added_by", userDetails.get("emp_id"));
 
-//            Log.e(TAG,"time is "+HashMapParams.get("times"));
-//            HashMapParams.put("is_active", "true");
+//            Log.e(TAG,"time is "+HashMapValues.get("times"));
+//            HashMapValues.put("is_active", "true");
             //returning data to the server as a String
-            return imageProcessClass.ImageHttpRequest(ServerUploadPathURL, HashMapParams);
+            return imageProcessClass.ImageHttpRequest(ServerUploadPathURL, HashMapValues);
         }
 
         @Override
@@ -275,6 +286,9 @@ public class StoriesUploadActivity extends AppCompatActivity {
                     while ((RC2 = bufferedReaderObject.readLine()) != null) {
                         stringBuilder.append(RC2);
                     }
+                } else {
+                    //if not HTTP_OK then show msg
+                    Toast.makeText(StoriesUploadActivity.this, "Network Error. Please Try Again...", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -302,7 +316,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
                     stringBuilderObject.append(URLEncoder.encode(KEY.getValue(), "UTF-8"));
                 }
             }
-//            Log.e(TAG, "Data Sent is : " + stringBuilderObject.toString());
+            Log.e(TAG, "Data Sent is : " + stringBuilderObject.toString());
             return stringBuilderObject.toString();
         }
     }

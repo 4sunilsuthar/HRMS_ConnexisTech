@@ -5,15 +5,26 @@ package com.lms.admin.lms;
  */
 
 public class PostStory {
-    private String time, image, textMsg, username, profileImg, date;
+    private String time, image, titleMsg, textMsg, username, profileImg, date;
 
-    public PostStory(String date, String textMsg, String image, String username) {
+    public PostStory(String date, String titleMsg, String textMsg, String image, String username) {
 //        this.time = time;
         this.image = image;
+        this.titleMsg = titleMsg;
         this.textMsg = textMsg;
         this.username = username;
         this.profileImg = image;
         this.date = date;
+
+
+    }
+
+    public String getTitleMsg() {
+        return titleMsg;
+    }
+
+    public void setTitleMsg(String titleMsg) {
+        this.titleMsg = titleMsg;
     }
 
     public String getTime() {
