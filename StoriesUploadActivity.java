@@ -54,7 +54,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
     Bitmap bitmap;
     boolean check = true;
     ProgressDialog progressDialog;
-    String ServerUploadPathURL = "http://192.168.0.128/hrms_app/img_upload_to_server.php";
+    //    String ServerUploadPathURL = "http://192.168.0.128/hrms_app/img_upload_to_server.php";//old URL
+    String ServerUploadPathURL = "http://192.168.0.119/hrms_app/img_upload_to_server.php";//new URL changed IP
     SessionManager sessionManager;
     private String convertImage;
 

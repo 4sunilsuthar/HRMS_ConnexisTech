@@ -168,7 +168,8 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         @Override
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            verify_email_url = "http://192.168.0.128/hrms_app/verify_email.php";
+//            verify_email_url = "http://192.168.0.128/hrms_app/verify_email.php";//old URL
+            verify_email_url = "http://192.168.0.119/hrms_app/verify_email.php";//new URL changed IP
 //            Log.e(TAG, "URL is :" + verify_email_url);
 
         }

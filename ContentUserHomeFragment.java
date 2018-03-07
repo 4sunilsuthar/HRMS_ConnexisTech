@@ -140,7 +140,8 @@ public class ContentUserHomeFragment extends Fragment {
         PostStoryAdapter postStoryAdapter;
         JSONObject jsonObject;
         JSONArray jsonArray;
-        String get_posts_url = "http://192.168.0.128/hrms_app/get_posts_stories.php";
+        //        String get_posts_url = "http://192.168.0.128/hrms_app/get_posts_stories.php"; //old URL
+        String get_posts_url = "http://192.168.0.119/hrms_app/get_posts_stories.php"; // new URL with new IP address
 
         BackgroundTask(Context context) {
             this.context = context;

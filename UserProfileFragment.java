@@ -91,7 +91,8 @@ public class UserProfileFragment extends Fragment {
 
         JSONObject jsonObject;
         JSONArray jsonArray;
-        String get_user_profile_details_url = "http://192.168.0.128/hrms_app/get_user_profile_details.php";
+        //        String get_user_profile_details_url = "http://192.168.0.128/hrms_app/get_user_profile_details.php";//old URL
+        String get_user_profile_details_url = "http://192.168.0.119/hrms_app/get_user_profile_details.php";//new URL changed IP
 
         BackgroundTask(Context context) {
             Log.e(TAG, "onBackgroundTask called...");

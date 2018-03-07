@@ -301,7 +301,8 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            register_new_emp_url = "http://192.168.0.128/hrms_app/register_new_emp.php";
+//            register_new_emp_url = "http://192.168.0.128/hrms_app/register_new_emp.php";// old URL
+            register_new_emp_url = "http://192.168.0.119/hrms_app/register_new_emp.php";// new URL with changed IP
         }
 
         @Override
