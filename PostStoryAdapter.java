@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,12 +48,16 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
         holder.postDate.setText(postStory.getDate());
         holder.postTitleMsg.setText(postStory.getTitleMsg());
         holder.postTxtMsg.setText(postStory.getTextMsg());
-        Picasso.with(context).load(postStory.getImage()).into(holder.postImg);
+        //checking if post image is not available then show a default picture in that post
+        Log.e(TAG, "postStory.getImage() is " + postStory.getImage());
+        if (postStory.getImage().equals("null")) {
+            holder.postImg.setBackgroundResource(R.drawable.person);//showing demo image till load
+        } else {
+            Picasso.with(context).load(postStory.getImage()).into(holder.postImg);//otherwise showing the actual image
+        }
         Picasso.with(context).load(postStory.getProfileImg()).into(holder.postUserProfile);
         holder.postImg.setImageURI(Uri.parse(postStory.getImage()));
         holder.postUserProfile.setImageURI(Uri.parse(postStory.getProfileImg()));
-//        Log.e(TAG, "Post image url is : " + postStory.getImage());
-//        Log.e(TAG, "Profile image url is : " + postStory.getProfileImg());
 
     }
 

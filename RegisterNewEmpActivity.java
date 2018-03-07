@@ -302,13 +302,13 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
 //            register_new_emp_url = "http://192.168.0.128/hrms_app/register_new_emp.php";// old URL
-            register_new_emp_url = "http://192.168.0.119/hrms_app/register_new_emp.php";// new URL with changed IP
+//            register_new_emp_url = "http://192.168.0.119/hrms_app/register_new_emp.php";// new URL with changed IP
         }
 
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                URL url = new URL(register_new_emp_url);
+                URL url = new URL(API_URLs.registerNewEmpAPIUrl);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);

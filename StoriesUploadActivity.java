@@ -55,7 +55,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
     boolean check = true;
     ProgressDialog progressDialog;
     //    String ServerUploadPathURL = "http://192.168.0.128/hrms_app/img_upload_to_server.php";//old URL
-    String ServerUploadPathURL = "http://192.168.0.119/hrms_app/img_upload_to_server.php";//new URL changed IP
+//    String ServerUploadPathURL = "http://192.168.0.119/hrms_app/img_upload_to_server.php";//new URL changed IP
     SessionManager sessionManager;
     private String convertImage;
 
@@ -233,7 +233,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
             Log.e(TAG, "time is " + HashMapValues.get("times"));
 //            HashMapValues.put("is_active", "true");
             //returning data to the server as a String
-            return imageProcessClass.ImageHttpRequest(ServerUploadPathURL, HashMapValues);
+            return imageProcessClass.ImageHttpRequest(API_URLs.imgUploadToServerAPIUrl, HashMapValues);
         }
 
         @Override

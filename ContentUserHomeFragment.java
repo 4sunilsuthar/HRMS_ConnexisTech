@@ -141,7 +141,7 @@ public class ContentUserHomeFragment extends Fragment {
         JSONObject jsonObject;
         JSONArray jsonArray;
         //        String get_posts_url = "http://192.168.0.128/hrms_app/get_posts_stories.php"; //old URL
-        String get_posts_url = "http://192.168.0.119/hrms_app/get_posts_stories.php"; // new URL with new IP address
+//        String get_posts_url = "http://192.168.0.119/hrms_app/get_posts_stories.php"; // new URL with new IP address
 
         BackgroundTask(Context context) {
             this.context = context;
@@ -156,7 +156,7 @@ public class ContentUserHomeFragment extends Fragment {
         @Override
         protected String doInBackground(Void... voids) {
             try {
-                URL url = new URL(get_posts_url);
+                URL url = new URL(API_URLs.getPostStoriesAPIUrl);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestMethod("POST");
                 httpURLConnection.setDoOutput(true);
