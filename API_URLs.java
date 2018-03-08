@@ -12,5 +12,6 @@ public class API_URLs {
     public static final String getPostStoriesAPIUrl = "http://192.168.0.129/hrms_app/get_posts_stories.php";
     public static final String registerNewEmpAPIUrl = "http://192.168.0.129/hrms_app/register_new_emp.php";
     public static final String imgUploadToServerAPIUrl = "http://192.168.0.129/hrms_app/img_upload_to_server.php";
+    public static final String updateUserProfileDetailsAPIUrl = "http://192.168.0.129/hrms_app/update_user_profile_details.php";
 
 }

@@ -44,7 +44,6 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 public class StoriesUploadActivity extends AppCompatActivity {
-    public static final int RequestPermissionCode = 1;
 
     private static final String TAG = "StoriesUploadActivity"; //for debugging
     EditText edPostTextMsg, edPostTitle;
