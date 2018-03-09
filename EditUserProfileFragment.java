@@ -382,15 +382,15 @@ public class EditUserProfileFragment extends Fragment {
     @SuppressLint("StaticFieldLeak")
     class UpdateEmpProfileData extends AsyncTask<Void, Void, String> {
         ProgressDialog progressDialog;
-        String userId, name, phone, qualification, gender, address, skills, coverArtImgUrl, profileImgUrl;
+        String empId, name, phone, qualification, gender, address, skills, coverArtImgUrl, profileImgUrl;
 
         UpdateEmpProfileData(String name, String phone, String qualification, String gender, String address, String skills, String profileImgUrl, String coverArtImgUrl) {
             // for fetching the user_id
             SessionManager sessionManager = new SessionManager(getContext());
             final HashMap<String, String> userDetails = sessionManager.getUserDetails();
-            Log.e(TAG, "UserDetails are : " + userDetails.get("user_id"));
-            this.userId = userDetails.get("user_id");
-            ;
+//            Log.e(TAG, "UserDetails are : " + userDetails.get("user_id"));
+            this.empId = userDetails.get(SessionManager.KEY_EMPID);
+            Log.e(TAG, "Fetched UserDetails are : " + this.empId);
             this.name = name;
             this.phone = phone;
             this.qualification = qualification;
@@ -435,7 +435,7 @@ public class EditUserProfileFragment extends Fragment {
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                 String data_string = URLEncoder.encode("name", "UTF-8") + "=" + URLEncoder.encode(name, "UTF-8") + "&" +
-//                        URLEncoder.encode("user_id", "UTF-8") + "=" + URLEncoder.encode(userId, "UTF-8") + "&" +
+                        URLEncoder.encode("emp_id", "UTF-8") + "=" + URLEncoder.encode(empId, "UTF-8") + "&" +
                         URLEncoder.encode("phone", "UTF-8") + "=" + URLEncoder.encode(phone, "UTF-8") + "&" +
                         URLEncoder.encode("qualification", "UTF-8") + "=" + URLEncoder.encode(qualification, "UTF-8") + "&" +
                         URLEncoder.encode("gender", "UTF-8") + "=" + URLEncoder.encode(gender, "UTF-8") + "&" +
@@ -483,8 +483,6 @@ public class EditUserProfileFragment extends Fragment {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-
         }
     }
 

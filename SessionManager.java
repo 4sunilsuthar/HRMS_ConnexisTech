@@ -18,23 +18,22 @@ public class SessionManager {
     public static final String KEY_EMPID = "emp_id";
     // Email address (make variable public to access from outside)
     public static final String KEY_EMAIL = "email";
-    // Sharedpref file name
+    // SharedPref file name
     private static final String PREF_NAME = "HRMSAppPref";
     // All Shared Preferences Keys
     private static final String IS_LOGIN = "IsLoggedIn";
     // Shared Preferences
-    SharedPreferences pref;
+    private SharedPreferences pref;
     // Editor for Shared preferences
-    Editor editor;
+    private Editor editor;
     // Context
-    Context _context;
-    // Shared pref mode
-    int PRIVATE_MODE = 0;
+    private Context _context;
 
     // Constructor
     @SuppressLint("CommitPrefEdits")
     public SessionManager(Context context) {
         this._context = context;
+        int PRIVATE_MODE = 0;
         pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
         editor = pref.edit();
     }
