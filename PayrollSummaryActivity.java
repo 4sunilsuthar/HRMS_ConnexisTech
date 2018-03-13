@@ -19,8 +19,8 @@ public class PayrollSummaryActivity extends AppCompatActivity {
         fragment_manager = this.getSupportFragmentManager();
         fragmentTrans = fragment_manager.beginTransaction();
         fragment = new PayrollSummaryTableFragment();
-        fragmentTrans.replace(R.id.frg_container_pay_summary, fragment).addToBackStack("payroll_summary_fragment").commit();
-
+        fragment_manager.popBackStack();
+        fragmentTrans.replace(R.id.frg_container_pay_summary, fragment).commit();
     }
 }
 

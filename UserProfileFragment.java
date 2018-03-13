@@ -99,6 +99,8 @@ public class UserProfileFragment extends Fragment {
 
 
     }
+
+
     //background task fetching the data and displaying it here
     @SuppressLint("StaticFieldLeak")
     public class BackgroundTask extends AsyncTask<Void, PostStory, String> {
@@ -109,6 +111,7 @@ public class UserProfileFragment extends Fragment {
 //        String get_user_profile_details_url = "http://192.168.0.129/hrms_app/get_user_profile_details.php";//new URL changed IP
 
         ProgressDialog progressDialog;
+
         BackgroundTask(Context context) {
             //            this.context = context;
 //            this.activity = (Activity) context;
@@ -143,19 +146,6 @@ public class UserProfileFragment extends Fragment {
                 httpURLConnection.disconnect();
                 Log.e(TAG, "result is : " + result);
                 return result.toString().trim();
-                /*
-                // got our result in JSON format now parse it
-                JSONObject jsonObject = new JSONObject(result.toString());
-                JSONArray jsonArray = jsonObject.getJSONArray("server_response");
-                int count = 0;
-                while (count < jsonArray.length()) {
-                    JSONObject jo = jsonArray.getJSONObject(count);
-                    count++;
-                    PostStory postStory = new PostStory(jo.getString("date"), jo.getString("time"), jo.getString("text_message"), jo.getString("image_url"), jo.getString("added_by"));
-//                    publishProgress(postStory);
-                }
-                return result.toString().trim(); //returning result from the web service
-                */
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();

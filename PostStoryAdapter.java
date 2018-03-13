@@ -2,7 +2,6 @@ package com.lms.admin.lms;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -31,7 +30,6 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
         this.postStoriesList = postStoriesList;
     }
 
-
     @NonNull
     @Override
     public PostStoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -51,14 +49,17 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
         //checking if post image is not available then show a default picture in that post
         Log.e(TAG, "postStory.getImage() is " + postStory.getImage());
         if (postStory.getImage().equals("null")) {
-            holder.postImg.setBackgroundResource(R.drawable.person);//showing demo image till load
+            Picasso.with(context).load(R.drawable.picture_post1).into(holder.postImg);//showing demo image till load
         } else {
             Picasso.with(context).load(postStory.getImage()).into(holder.postImg);//otherwise showing the actual image
         }
-        Picasso.with(context).load(postStory.getProfileImg()).into(holder.postUserProfile);
-        holder.postImg.setImageURI(Uri.parse(postStory.getImage()));
-        holder.postUserProfile.setImageURI(Uri.parse(postStory.getProfileImg()));
-
+        Log.e(TAG, "postStory.getProfileImg() is :" + postStory.getProfileImg());
+        if (postStory.getProfileImg().equals("null")) {
+//            Log.e(TAG, "profile path is null so Lets have default image >>>>><<<<<<");
+            Picasso.with(context).load(R.drawable.person).into(holder.postUserProfile);//showing demo image till load or img not available
+        } else {
+            Picasso.with(context).load(postStory.getProfileImg()).into(holder.postUserProfile);//otherwise showing the actual image
+        }
     }
 
     @Override
@@ -72,69 +73,12 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
 
         PostStoryViewHolder(View itemView) {
             super(itemView);
-
             postImg = itemView.findViewById(R.id.post_image);
             postUserProfile = itemView.findViewById(R.id.post_profile_image);
             postUsername = itemView.findViewById(R.id.post_by_user);
             postDate = itemView.findViewById(R.id.post_date_time);
             postTxtMsg = itemView.findViewById(R.id.post_text_msg);
             postTitleMsg = itemView.findViewById(R.id.post_title_msg);
-
         }
     }
 }
-
-/*
-
-    ArrayList<PostStory> arrayList = new ArrayList<>();
-
-    public PostStoryAdapter(ArrayList<PostStory> arrayList) {
-        this.arrayList = arrayList;
-    }
-
-    @NonNull
-    @Override
-    public RecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.post_row_card,parent,false);
-        RecyclerViewHolder recyclerViewHolder = new RecyclerViewHolder(view);
-        return recyclerViewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position) {
-        PostStory postStory = arrayList.get(position);
-        holder.userName.setText(postStory.getUsername());
-        holder.postTitle.setText(postStory.getTime());
-        holder.postTextMsg.setText(postStory.getTextMsg());
-        holder.postDate.setText(postStory.getDate());
-        //image Task here
-        //        holder.postImage.
-
-//        Picasso.with().load(postStory.getProfileImg()).into(holder.postImage);
-    }
-
-    @Override
-    public int getItemCount() {
-        return arrayList.size();
-    }
-
-
-//viewHolder class
-   */
-/* public static class RecyclerViewHolder extends RecyclerView.ViewHolder{
-        TextView userName,postDate,postTitle,postTextMsg;
-        ImageView profileImage,postImage;
-
-        public RecyclerViewHolder(View itemView) {
-            super(itemView);
-            userName = itemView.findViewById(R.id.post_by_user);
-            postDate = itemView.findViewById(R.id.post_date_time);
-            postTitle = itemView.findViewById(R.id.post_title);
-            postTitle = itemView.findViewById(R.id.post_text_msg);
-
-            profileImage = itemView.findViewById(R.id.post_profile_image);
-            postImage = itemView.findViewById(R.id.post_image);
-
-        }
-    }*/
-

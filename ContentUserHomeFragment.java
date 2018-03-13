@@ -1,9 +1,7 @@
 package com.lms.admin.lms;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,18 +12,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,6 +38,8 @@ public class ContentUserHomeFragment extends Fragment {
     private static final String TAG = "ContentUserHomeFragment";
     RecyclerView mRecyclerView;
     List<PostStory> postStoryList;
+    PostStoryAdapter postStoryAdapter;
+    private RequestQueue requestQueuePosts;
 
     @Nullable
     @Override
@@ -60,8 +62,15 @@ public class ContentUserHomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         //        get values in the Adapter from the background task
+        /*
         BackgroundTask backgroundTask = new BackgroundTask(getContext());
         backgroundTask.execute();
+        */
+//        call volley background request here
+        //background volley request here
+        requestQueuePosts = Volley.newRequestQueue(getContext());
+        parseJSONPosts();
+
     }
 
     /**
@@ -87,12 +96,12 @@ public class ContentUserHomeFragment extends Fragment {
             String currentDate = dateFormat.format(new Date().getTime());
             Date cDate = dateFormat.parse(currentDate);
 //            Log.e(TAG, "Current date is : " + currentDate);
-            Log.e(TAG, "Current date timestamp is : " + cDate.getTime());
-            Log.e(TAG, "Post date timestamp is : " + pDate.getTime());
+//            Log.e(TAG, "Current date timestamp is : " + cDate.getTime());
+//            Log.e(TAG, "Post date timestamp is : " + pDate.getTime());
             //find difference between postTime and currentTime
             long ms2 = 43200000; //adding 12 hours (with milliseconds value ) to solve the problem of AM/PM
             long ms = Math.abs((cDate.getTime() + ms2) - pDate.getTime());
-            Log.e(TAG, "difference bw timestamps : " + ms);
+//            Log.e(TAG, "difference bw timestamps : " + ms);
 
 
 
@@ -121,7 +130,7 @@ public class ContentUserHomeFragment extends Fragment {
             } else if (ms > SECOND) {
                 text.append(" JUST NOW");
             }
-            Log.e(TAG, "time is " + text);
+//            Log.e(TAG, "time is " + text);
             return String.valueOf(text);
         } catch (Exception e) {
             e.printStackTrace();
@@ -129,7 +138,59 @@ public class ContentUserHomeFragment extends Fragment {
         }
     }
 
-    // Background Task Class just fetching json data here
+    //volley background code to fetch post details in the recyclerView
+    private void parseJSONPosts() {
+
+        final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Getting you on board", "Please Wait...", false, false);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, API_URLs.getPostStoriesAPIUrl, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    String date, time, title_message, text_message, image_url, added_by, profile_image_url;
+                    JSONArray jsonArray = response.getJSONArray("server_response");
+                    Log.e(TAG, "Posts details are: " + jsonArray.toString());
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        date = jsonObject.getString("date");
+                        time = jsonObject.getString("time");
+                        title_message = jsonObject.getString("title_message");
+                        text_message = jsonObject.getString("text_message");
+                        image_url = jsonObject.getString("image_url");
+                        added_by = jsonObject.getString("user_name");
+                        profile_image_url = jsonObject.getString("profile_img_url");
+                        //call the dateDiff function to set value of date differences
+                        String diff = getDateDiff(date, time);
+//                    Log.e(TAG, "dateDiff msg is : " + diff);
+                        //set this to the Adapter
+                        PostStory postStory = new PostStory(diff, title_message, text_message, image_url, added_by, profile_image_url);
+                        postStoryList.add(postStory);
+//                    Log.e(TAG,"Story is : "+postStory.toString());s
+//                    Log.e(TAG, "in onPostExecute() method ...setting the adapter.. ");
+                        postStoryAdapter = new PostStoryAdapter(getContext(), postStoryList);
+                        mRecyclerView.setAdapter(postStoryAdapter);
+                    }
+                    progressDialog.dismiss();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                progressDialog.dismiss();
+                Toast.makeText(getContext(), "Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        });
+        //for default retry policy
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueuePosts.add(request);
+    }
+
+   /* // Background Task Class just fetching json data here
     @SuppressLint("StaticFieldLeak")
     public class BackgroundTask extends AsyncTask<Void, PostStory, String> {
 
@@ -174,7 +235,7 @@ public class ContentUserHomeFragment extends Fragment {
                 httpURLConnection.disconnect();
 //                Log.e(TAG, "result is : " + result);
                 return result.toString().trim();
-                /*
+                *//*
                 // got our result in JSON format now parse it
                 JSONObject jsonObject = new JSONObject(result.toString());
                 JSONArray jsonArray = jsonObject.getJSONArray("server_response");
@@ -186,7 +247,7 @@ public class ContentUserHomeFragment extends Fragment {
 //                    publishProgress(postStory);
                 }
                 return result.toString().trim(); //returning result from the web service
-                */
+                *//*
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -236,5 +297,5 @@ public class ContentUserHomeFragment extends Fragment {
 
     }
 
-
+*/
 }

@@ -26,6 +26,7 @@ public class PayrollSummaryTableFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         //setting the data in here...
 
     }

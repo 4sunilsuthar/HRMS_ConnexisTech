@@ -1,11 +1,9 @@
 package com.lms.admin.lms;
 
-import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
-import android.content.Context;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -20,25 +18,26 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class RegisterNewEmpActivity extends AppCompatActivity {
 
@@ -48,6 +47,7 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
     ProgressBar progressBar;
     Button btnSubmit, btnReset;
     java.util.Calendar mDateOfJoining;
+    private RequestQueue requestQueue;
     private String name, designation, dateOfJoining, email;
 
     @Override
@@ -63,6 +63,22 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
         btnReset = findViewById(R.id.btnResetRegistration);
         edDateOfJoining = findViewById(R.id.edDateOfJoining);
 
+
+        spDesignation.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                //on selecting an item from spinner
+                spDesignation.setSelection(position);
+                //Log the calling
+                Log.e(TAG, "in the onItemSelected()");
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                //when no item is selected
+            }
+        });
         edDateOfJoining.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,10 +109,9 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
                 }, year, month, day);
 
                 //setting calender to have future dates only restricting the past dates
-                Long dur = 5184000000L; //for two months duration @@@@@@
+                Long dur = 5184000000L; //for two months duration @@@@@@@@@
 
                 datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis() + dur);
-
                 datePickerDialog.show();
             }
         });//end of dateOfJoining Code
@@ -120,18 +135,22 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 // Register the new Employee
                                 //code here to save given details
-
-                                //run background task to save emp details
                                 //get all values
 
                                 name = edName.getText().toString();
                                 email = edEmail.getText().toString();
                                 designation = spDesignation.getSelectedItem().toString();
                                 //dateOfJoining = edDateOfJoining.getText().toString();
+/*
 
 //                                call background task to save data in the database
                                 SaveEmpData saveEmpData = new SaveEmpData(name, email, dateOfJoining, designation);
                                 saveEmpData.execute();//calling background task
+*/
+                                //call volley background request here
+//                                requestQueue = Volley.newRequestQueue(RegisterNewEmpActivity.this);
+                                //call the method to save emp records
+                                parseJSONSendRegisterRequest();
                                 //now go to admin dashboard
                                 startActivity(new Intent(RegisterNewEmpActivity.this, AdminDashboardActivity.class));
 
@@ -160,10 +179,88 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
             }
         });
 
-        //calling the background task to populate the designations in the spinner
+        /*//calling the background task to populate the designations in the spinner
         GetJSONDesignation getJSON = new GetJSONDesignation();
-        getJSON.execute();
+        getJSON.execute();*/
+        //volley code to fetch designations here
+        //background volley request here
+        requestQueue = Volley.newRequestQueue(this);
+        parseJSONDesignations();
     }
+
+    //volley background code to fetch available designations in the spinner
+    private void parseJSONDesignations() {
+
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Getting you on board", "Please Wait...", false, false);
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, API_URLs.getDesignationsAPIUrl, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    List<String> designationList = new ArrayList<>();
+                    JSONArray jsonArray = response.getJSONArray("server_response");
+                    Log.e(TAG, "Result is: " + jsonArray.toString());
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        String designationName = jsonObject.getString("name");
+                        designationList.add(designationName);
+                    }
+                    ArrayAdapter<String> dataAdapter;
+                    dataAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, designationList);
+                    dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spDesignation.setAdapter(dataAdapter);
+                    progressDialog.dismiss();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                progressDialog.dismiss();
+                Toast.makeText(RegisterNewEmpActivity.this, "Error in fetching details...Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        });
+        //for default retry policy
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(request);
+    }
+
+    private void parseJSONSendRegisterRequest() {
+
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Saving Employee Data...", "Please Wait...", false, false);
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.registerNewEmpAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Toast.makeText(RegisterNewEmpActivity.this, response, Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "ServerResponse is: " + response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                progressDialog.dismiss();
+                Log.e(TAG, "Error is: " + error);
+
+            }
+        }) {
+
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("name", name);
+                params.put("email", email);
+                params.put("date_of_joining", dateOfJoining);
+                params.put("designation", designation);
+                return params;
+            }
+        };
+        requestQueue.add(stringRequest);
+    }
+
 
     /*
         * As fetching the json string is a network operation
@@ -173,7 +270,7 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
         * Void -> We are not passing anything
         * Void -> Nothing at progress update as well
         * String -> After completion it should return a string and it will be the json string
-        * */
+        * *//*
     @SuppressLint("StaticFieldLeak")
     class GetJSONDesignation extends AsyncTask<Void, Void, String> {
         Context context;
@@ -186,7 +283,7 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
-            getDesignations_url = "http://192.168.0.128/hrms_app/get_designations.php";
+//            getDesignations_url = "http://192.168.0.128/hrms_app/get_designations.php";
 //            Log.e(TAG, "URL is :" + url);
 
         }
@@ -198,7 +295,7 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
 
             try {
                 //creating a URL
-                URL url = new URL(getDesignations_url);
+                URL url = new URL(API_URLs.getDesignationsAPIUrl);
 
                 //Opening the URL using HttpURLConnection
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -246,7 +343,7 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
 
         }
 
-        public void parseJson(String jsonData) {
+        void parseJson(String jsonData) {
             String designationName;
             List<String> designationList = new ArrayList<>();
             try {
@@ -263,7 +360,6 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
             ArrayAdapter<String> dataAdapter;
             dataAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.spinner_item, designationList);
             dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -285,7 +381,9 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
 
         }//end of parseJSON
     }
+*/
 
+/*
     @SuppressLint("StaticFieldLeak")
     class SaveEmpData extends AsyncTask<Void, Void, String> {
         String register_new_emp_url;
@@ -318,7 +416,6 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
                         URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(email, "UTF-8") + "&" +
                         URLEncoder.encode("date_of_joining", "UTF-8") + "=" + URLEncoder.encode(dateOfJoining, "UTF-8") + "&" +
                         URLEncoder.encode("designation", "UTF-8") + "=" + URLEncoder.encode(designation, "UTF-8");
-
                 bufferedWriter.write(data_string);
                 bufferedWriter.flush();
                 bufferedWriter.close();
@@ -361,4 +458,6 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
 
         }
     }
+
+*/
 }
