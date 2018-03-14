@@ -1,13 +1,13 @@
 package com.lms.admin.lms;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -20,43 +20,36 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.net.ssl.HttpsURLConnection;
-
 public class StoriesUploadActivity extends AppCompatActivity {
 
     private static final String TAG = "StoriesUploadActivity"; //for debugging
+    SessionManager sessionManager;
     EditText edPostTextMsg, edPostTitle;
     Button btnUploadImg, btnUploadPost, btnCancel;
     ImageView imgPostPreview, imgCompanyLogo, imgAppLogo;
     TextView tvHeading;
     Bitmap bitmap;
-    boolean check = true;
-    ProgressDialog progressDialog;
-    //    String ServerUploadPathURL = "http://192.168.0.128/hrms_app/img_upload_to_server.php";//old URL
-//    String ServerUploadPathURL = "http://192.168.0.119/hrms_app/img_upload_to_server.php";//new URL changed IP
-    SessionManager sessionManager;
-    private String convertImage;
+    private RequestQueue requestQueue;
+    private String imageByteString = "null";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +65,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
         imgAppLogo = findViewById(R.id.imgAppLogo);
         tvHeading = findViewById(R.id.tvHeading);
         sessionManager = new SessionManager(this);
-        //for the action bar back button
+
+        //for the action bar back button (Universal back button)
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -81,12 +75,48 @@ public class StoriesUploadActivity extends AppCompatActivity {
         btnUploadPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//              Call the function to upload the post to the server
-                ImageUploadToServerFunction();
+                //validations here
+//                values are:
+                Log.e(TAG, "Values are : TextMsg -> " + TextUtils.isEmpty(edPostTextMsg.getText()) + "| postTitle ->" + TextUtils.isEmpty(edPostTitle.getText()) + "| imageUrl ->" + imgPostPreview.getDrawable());
+                if (TextUtils.isEmpty(edPostTextMsg.getText()) && imgPostPreview.getDrawable() == null && TextUtils.isEmpty(edPostTitle.getText())) {
+                    Toast.makeText(StoriesUploadActivity.this, "Nothing to Upload...", Toast.LENGTH_SHORT).show();
+                    return;// not performing any background task
+                } else if (TextUtils.isEmpty(edPostTextMsg.getText()) && imgPostPreview.getDrawable() == null) {
+                    Toast.makeText(StoriesUploadActivity.this, "Please Provide Image or Text Message to Upload...", Toast.LENGTH_SHORT).show();
+                    return;// not performing any background task
+                } else if (TextUtils.isEmpty(edPostTitle.getText())) {
+                    Toast.makeText(StoriesUploadActivity.this, "Please Provide Post Title to Upload...", Toast.LENGTH_SHORT).show();
+                    return;// not performing any background task
+                }
+                //all good lets upload new post
+                if (bitmap != null) {
+                    imageByteString = imageToString(bitmap);
+                }
+
+                // #1.call the alertDialog for confirmation of post upload
+                new AlertDialog.Builder(StoriesUploadActivity.this, R.style.CustomDialogTheme)
+                        .setIcon(R.drawable.ic_warning_white)
+                        .setTitle("Confirm new Upload")
+                        .setMessage("Do You Want To Upload ?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //generate new volley background request here
+                                requestQueue = Volley.newRequestQueue(StoriesUploadActivity.this);
+                                //Call the function to upload the post to the server
+                                uploadNewPost();
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //dismiss the alert dialog
+                                dialog.dismiss();
+                            }
+                        })
+                        .show().setCanceledOnTouchOutside(false);
             }
         });
-
-
     }
 
     @Override
@@ -94,8 +124,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
         super.onStart();
         //check if user is logged in
         Log.e(TAG, String.valueOf(sessionManager.getUserDetails()));
-        sessionManager.checkLogin();
-
+        sessionManager.checkLogin();//login check here
     }
 
     //for back button on the title bar
@@ -107,7 +136,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void uploadImageFun(View view) {
+    public void selectImage(View view) {
         // start picker to get image for cropping and then use the image in cropping activity
         CropImage.activity()
                 .setGuidelines(CropImageView.Guidelines.ON)
@@ -149,6 +178,79 @@ public class StoriesUploadActivity extends AppCompatActivity {
         }
     }
 
+    private String imageToString(Bitmap bitmap) {
+        //image available so lets compress it
+        ByteArrayOutputStream byteArrayOutputStream;
+        byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] imgBytes = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(imgBytes, Base64.DEFAULT);//returning the image as a string object
+    }
+
+    private void uploadNewPost() {
+
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Uploading new Post...", "Please Wait...", false, false);
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.imgUploadToServerAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Toast.makeText(StoriesUploadActivity.this, response, Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "ServerResponse is: " + response);
+                startActivity(new Intent(StoriesUploadActivity.this, AdminDashboardActivity.class));
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+
+                //HashMap for values
+                HashMap<String, String> params = new HashMap<>();
+
+                //finding values to be stored in the database
+                Calendar cal = Calendar.getInstance();
+                //creating Locale object for date formats
+                Locale myLocale = new Locale("en", "in");
+//                Locale standardLocale = Locale.US;
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", myLocale);
+                String mCurrentDate = sdf.format(cal.getTime());
+                sdf = new SimpleDateFormat("HH:mm:ss", myLocale); //using the same dateFormatter to get the time as well
+                String mCurrentTime = sdf.format(cal.getTime());
+
+                //get emp_id from the shared preference obj
+                HashMap<String, String> userDetails = sessionManager.getUserDetails();
+
+//              Log.e(TAG, "current Date is : " + mCurrentDate);
+//              Log.e(TAG, "current Time is : " + mCurrentTime);
+                String txtMsg = edPostTextMsg.getText().toString().trim();
+                String titleMsg = edPostTitle.getText().toString().trim();
+                Log.e(TAG, "txtTitle is : " + titleMsg + "| txtMsg is: " + txtMsg);
+                if (txtMsg.isEmpty()) {
+                    txtMsg = "null";
+                }
+                if (titleMsg.isEmpty()) {
+                    titleMsg = "null";
+                }
+//              Log.e(TAG, "emp_id is : " + userDetails.get("emp_id"));
+                //add more values here to be uploaded to the server
+                params.put("date", mCurrentDate);
+                params.put("times", mCurrentTime);
+                params.put("text_message", txtMsg);
+                params.put("title_message", titleMsg);
+                params.put("image_url", imageByteString);
+                params.put("added_by", userDetails.get("emp_id"));
+                Log.e(TAG, "params are : " + params.toString());
+                return params;
+            }
+        };
+        requestQueue.add(stringRequest);
+    }
+
+  /*
     public void ImageUploadToServerFunction() {
         //before uploading the story check the validations and then proceed accordingly...
 
@@ -156,14 +258,13 @@ public class StoriesUploadActivity extends AppCompatActivity {
 
 
         //validations here
-
         if (TextUtils.isEmpty(edPostTextMsg.getText()) && imgPostPreview.getDrawable() == null && edPostTitle.getText() == null) {
             Toast.makeText(this, "Nothing to Upload...", Toast.LENGTH_SHORT).show();
             return;// not performing any background task
         }
 
         if (bitmap != null) {
-
+            //image available so lets compress it
             ByteArrayOutputStream byteArrayOutputStreamObject;
             byteArrayOutputStreamObject = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStreamObject);
@@ -236,7 +337,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(String string1) {
+        protected void onPostExecute(String string1){
 //            Log.e(TAG, "String response is : " + string1);
             super.onPostExecute(string1);
             // Dismiss the progress dialog after done uploading.
@@ -320,6 +421,8 @@ public class StoriesUploadActivity extends AppCompatActivity {
             return stringBuilderObject.toString();
         }
     }
+
+    */
 }
 
 

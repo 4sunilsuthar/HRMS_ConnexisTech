@@ -1,6 +1,7 @@
 package com.lms.admin.lms;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -13,6 +14,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -37,6 +46,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignInActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
     static final int REQ_CODE = 9001;
@@ -45,6 +56,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     GoogleApiClient googleApiClient;
     ProgressBar progressBar;
     SessionManager sessionManager;
+    private RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,24 +103,22 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         switch (v.getId()) {
             case R.id.btn_sign_in:
 //                Log.e(TAG, "Sign in Button Called ...");
+                signOut();//signOut first to show available email accounts
                 signIn();
                 break;
-
         }
     }
 
     private void signIn() {
-
         startActivityForResult(Auth.GoogleSignInApi.getSignInIntent(googleApiClient), REQ_CODE);
-
     }
 
-    private void signout() {
-
+    private void signOut() {
         Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
 //                updateUI();
+                Log.e(TAG, "status: " + status);
             }
         });
 
@@ -136,12 +146,108 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             //google sign in successful
             //now authenticate the user with the database
             //Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
-            BackgroundTask backgroundTask = new BackgroundTask(this);
-            backgroundTask.execute(email);//pass user email and verify it
+
+            //generate new volley background request here
+            requestQueue = Volley.newRequestQueue(SignInActivity.this);
+            //Call the function to upload the post to the server
+            Log.e(TAG, "User Email is :" + email);
+            checkAuthorization(email);
+          /*  BackgroundTask backgroundTask = new BackgroundTask(this);
+            backgroundTask.execute(email);//pass user email and verify it*/
 
         } else {
             Toast.makeText(getApplicationContext(), "Login Failed... Try Again", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void checkAuthorization(final String email) {
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Getting you on board", "Please Wait...", false, false);
+//        final StringRequest request = new StringRequest(Request.Method.POST, API_URLs.verifyEmailAPIUrl,null, new Response.Listener<JSONObject>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.verifyEmailAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Log.e(TAG, "JSONObj: " + response);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.e(TAG, "Error : " + error);
+
+                progressDialog.dismiss();
+                Toast.makeText(SignInActivity.this, "Volley Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("user_email_addr", email);
+                Log.e(TAG, "Params :" + params.toString());
+                return params;
+            }
+        };
+        //for default retry policy
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+
+        /*
+        //        Log.e(TAG, "request sent>>>");
+        @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    Log.e(TAG, "JSONObj: " +response);
+
+                    String empId, email;
+                    JSONArray jsonArray = response.getJSONArray("server_response");
+                    Log.e(TAG, "Response details are: " + jsonArray.toString());
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        empId = jsonObject.getString("emp_id");
+                        email = jsonObject.getString("email_address");
+                        Log.e(TAG, "emp_id: " + empId + " | email:" + email);
+                        //store user details in the session preference
+                        sessionManager.createLoginSession(empId, email); //shared preference created and email is set to current user email value
+                        Toast.makeText(getApplicationContext(), "Yey Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
+                    }
+                    progressDialog.dismiss();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.e(TAG, "Error : " + error);
+
+                progressDialog.dismiss();
+                Toast.makeText(SignInActivity.this, "Volley Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("user_email_addr", email);
+                Log.e(TAG,"Params :"+params.toString());
+                return params;
+            }
+        };
+        //for default retry policy
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(request);
+//        Log.e(TAG, "request sent>>>");
+
+
+*/
     }
 
     @Override

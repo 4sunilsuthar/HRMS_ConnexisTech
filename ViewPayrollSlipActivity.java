@@ -59,8 +59,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
         }
         //background volley request here
         requestQueue = Volley.newRequestQueue(this);
-        parseJSONEmpNames();
-
+        fetchJSONEmpNames();
         spEmpNames.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
@@ -86,7 +85,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
     }
 
     //volley background code to fetch emp details in the spinner
-    private void parseJSONEmpNames() {
+    private void fetchJSONEmpNames() {
 
         final ProgressDialog progressDialog = ProgressDialog.show(this, "Getting you on board", "Please Wait...", false, false);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, API_URLs.getEmpNamesAPIUrl, null, new Response.Listener<JSONObject>() {
