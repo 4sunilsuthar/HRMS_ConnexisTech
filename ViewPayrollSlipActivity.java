@@ -48,11 +48,9 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
         try {
             Field popup = Spinner.class.getDeclaredField("mPopup");
             popup.setAccessible(true);
-
             // Get private mPopup member variable and try cast to ListPopupWindow
             android.widget.ListPopupWindow popupWindow = (android.widget.ListPopupWindow) popup.get(spEmpNames);
-
-            // Set popupWindow height to 500px
+            // Set popupWindow height to 2000px
             popupWindow.setHeight(2000);
         } catch (NoClassDefFoundError | ClassCastException | NoSuchFieldException | IllegalAccessException e) {
             // silently fail...
@@ -70,9 +68,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
                 empId = dataAdapter.empGlobalId;
                 Log.e(TAG, "empId is: " + empId);
                 viewPayrollFragment(spEmpNames);
-
                 Log.e(TAG, "Item Selected...");
-
                 //fetch the record of employee whose name is selected in the spinner
 //                getEmpName
             }

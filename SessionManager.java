@@ -87,7 +87,7 @@ public class SessionManager {
     /**
      * Get stored session data
      */
-    public HashMap<String, String> getUserDetails() {
+    HashMap<String, String> getUserDetails() {
         HashMap<String, String> user = new HashMap<String, String>();
         // user name
         user.put(KEY_EMPID, pref.getString(KEY_EMPID, null));
@@ -120,10 +120,28 @@ public class SessionManager {
     }
 
     /**
+     * Clear session details
+     */
+    void clearPreferences() {
+        // Clearing all data from Shared Preferences
+        editor.clear();
+        editor.commit();
+    }
+
+    /**
      * Quick check for login
      **/
     // Get Login State
-    public boolean isLoggedIn() {
+    boolean isLoggedIn() {
         return pref.getBoolean(IS_LOGIN, false);
     }
+
+    String getUserEmail() {
+        return pref.getString(KEY_EMAIL, null);
+    }
+
+    String getEmpId() {
+        return pref.getString(KEY_EMPID, null);
+    }
+
 }

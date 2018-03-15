@@ -3,7 +3,6 @@ package com.lms.admin.lms;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,10 +57,17 @@ public class SpinnerCustomAdapter extends BaseAdapter {
 //        Log.e("myTags","in getView function!!!@@@@");
         //profileIcon.setImageResource(profileUrls[position]);
         SpinnerEmpDetails spinnerEmpDetails = empNamesList.get(position);
-        Picasso.with(context).load(spinnerEmpDetails.getProfileUrl()).into(profileIcon);
+        //check if profile image exist or not if Not then show the default (dummy) picture
+//        Log.e("myTAZG","profile Path: "+spinnerEmpDetails.getProfileUrl());
+        if ((spinnerEmpDetails.getProfileUrl()).equals("null")) {
+//            Log.e("Adapter","emp profile is null ");
+            Picasso.with(context).load(R.drawable.person).into(profileIcon);
+        } else {
+            Picasso.with(context).load(spinnerEmpDetails.getProfileUrl()).into(profileIcon);
+        }
         name.setText(spinnerEmpDetails.getName());
         empId.setText(spinnerEmpDetails.getEmpId());
-        Log.e("myTAZG", "seleccted emp's ID is : " + spinnerEmpDetails.getEmpId());
+//        Log.e("myTAZG", "selected emp's ID is : " + spinnerEmpDetails.getEmpId());
         empGlobalId = spinnerEmpDetails.getEmpId();
         return convertView;
     }

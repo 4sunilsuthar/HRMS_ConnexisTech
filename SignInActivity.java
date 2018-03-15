@@ -23,7 +23,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
@@ -32,6 +31,10 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -88,12 +91,15 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     @Override
     protected void onStart() {
         super.onStart();
+//        check if user is already logged in
+        Log.e(TAG, "isLoggedIn: " + sessionManager.isLoggedIn());
         // Check for existing Google Sign In account, if the user is already signed in
 // the GoogleSignInAccount will be non-null.
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        //get email from the shared preference to authenticate user
+        // GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+//        sessionManager.getUserDetails();
 //        Log.e(TAG, "Last SignIn Account is " + account.getEmail());
-
-        //updateUI(account);
+//        updateUI(account.getEmail());//send Email to UpdateUI
     }
 
     @Override
@@ -117,7 +123,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         Auth.GoogleSignInApi.signOut(googleApiClient).setResultCallback(new ResultCallback<Status>() {
             @Override
             public void onResult(@NonNull Status status) {
-//                updateUI();
+//                updateUI(null); //now signedOuts
                 Log.e(TAG, "status: " + status);
             }
         });
@@ -136,7 +142,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                 updateUI(email);
             }
         } else {
-            Log.e(TAG, "Sign in Successful");
+//            Log.e(TAG, "Sign in NOT Successful show toast try again");
             updateUI(null);
         }
     }
@@ -146,12 +152,11 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             //google sign in successful
             //now authenticate the user with the database
             //Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
-
             //generate new volley background request here
             requestQueue = Volley.newRequestQueue(SignInActivity.this);
-            //Call the function to upload the post to the server
-            Log.e(TAG, "User Email is :" + email);
-            checkAuthorization(email);
+            //Call the function to validate user email with the database
+            checkAuthorization(email);//
+//            Log.e(TAG, "User Email is :" + email);
           /*  BackgroundTask backgroundTask = new BackgroundTask(this);
             backgroundTask.execute(email);//pass user email and verify it*/
 
@@ -167,7 +172,46 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             @Override
             public void onResponse(String response) {
                 progressDialog.dismiss();
-                Log.e(TAG, "JSONObj: " + response);
+                Log.e(TAG, "response is: " + response);
+                // got our result in JSON format now parse it if error comes means user is not authorized
+                try {
+                    String empId = null, email_address = null;
+                    JSONObject mainJsonObject = new JSONObject(response);
+                    JSONArray jsonArray = mainJsonObject.getJSONArray("server_response");
+                    Log.e(TAG, "jsonArray is : " + jsonArray);
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        Log.e(TAG, "json_object2 is : " + jsonObject.toString());
+//                        empId = jsonObject.getString("emp_id");
+//                        email_address = jsonObject.getString("email_address");
+                        Log.e(TAG, "before Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
+                        //store user details in the session preference
+                        sessionManager.createLoginSession(jsonObject.getString("emp_id"), jsonObject.getString("email_address")); //shared preference created and email is set to current user email value
+                        Log.e(TAG, "after Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
+                    }
+                    Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_SHORT).show();
+                    //now check if user in Admin or Employee
+                    //if Admin then show Admin Panel else show Employee HomeFeed Activity
+                    //checkUserType();//function to be written here
+                    if (sessionManager.getUserEmail().equals("sunil.suthar@connexistech.com")) {
+                        //fr Admin
+                        startActivity(new Intent(SignInActivity.this, AdminDashboardActivity.class));
+                    } else {
+                        //for Employees
+                        startActivity(new Intent(SignInActivity.this, UserHomeActivity.class));
+                    }
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    progressDialog.dismiss();
+                    Toast.makeText(SignInActivity.this, "Invalid Credentials...", Toast.LENGTH_SHORT).show();
+//                    Log.e(TAG, "before Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
+                    //clear user session by changing the preferences (Session Details)
+                    sessionManager.clearPreferences();
+//                    Log.e(TAG,"this is Error: "+e);
+//                    Log.e(TAG, "after Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
+                }
 
             }
         }, new Response.ErrorListener() {
@@ -175,7 +219,6 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
                 Log.e(TAG, "Error : " + error);
-
                 progressDialog.dismiss();
                 Toast.makeText(SignInActivity.this, "Volley Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
             }
