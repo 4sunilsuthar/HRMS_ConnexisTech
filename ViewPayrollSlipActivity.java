@@ -1,6 +1,5 @@
 package com.lms.admin.lms;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,21 +12,7 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ViewPayrollSlipActivity extends FragmentActivity {
     private static final String TAG = "ViewPayrollSlipActivity";
@@ -44,6 +29,11 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_payroll_slip);
         spEmpNames = findViewById(R.id.sp_emp_names);
+
+        final SpinnerHelper spinnerHelper = new SpinnerHelper(ViewPayrollSlipActivity.this, spEmpNames);
+        spinnerHelper.setSpinnerLayout(2000);
+        spinnerHelper.fetchJSONEmpNames();
+/*
         // code for setting the height of the spinner dropdown
         try {
             Field popup = Spinner.class.getDeclaredField("mPopup");
@@ -57,7 +47,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
         }
         //background volley request here
         requestQueue = Volley.newRequestQueue(this);
-        fetchJSONEmpNames();
+        fetchJSONEmpNames();*/
         spEmpNames.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
@@ -65,7 +55,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
                 //on selecting an item from spinner
 //                Log.e(TAG, "Listener called : ");
                 spEmpNames.setSelection(position);
-                empId = dataAdapter.empGlobalId;
+                empId = spinnerHelper.dataAdapter.empGlobalId;
                 Log.e(TAG, "empId is: " + empId);
                 viewPayrollFragment(spEmpNames);
                 Log.e(TAG, "Item Selected...");
@@ -79,8 +69,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
             }
         });
     }
-
-    //volley background code to fetch emp details in the spinner
+  /*  //volley background code to fetch emp details in the spinner
     private void fetchJSONEmpNames() {
 
         final ProgressDialog progressDialog = ProgressDialog.show(this, "Getting you on board", "Please Wait...", false, false);
@@ -120,7 +109,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         requestQueue.add(request);
-    }
+    }*/
 
 
     public void viewPayrollFragment(View view) {

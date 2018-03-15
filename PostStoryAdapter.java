@@ -2,6 +2,7 @@ package com.lms.admin.lms;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -79,6 +81,15 @@ public class PostStoryAdapter extends RecyclerView.Adapter<PostStoryAdapter.Post
             postDate = itemView.findViewById(R.id.post_date_time);
             postTxtMsg = itemView.findViewById(R.id.post_text_msg);
             postTitleMsg = itemView.findViewById(R.id.post_title_msg);
+
+            //setting the onclick listener to the Post to display post
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(context, "Post clicked", Toast.LENGTH_SHORT).show();
+                    context.startActivity(new Intent(context, ShowPostDetailsActivity.class));
+                }
+            });
         }
     }
 }

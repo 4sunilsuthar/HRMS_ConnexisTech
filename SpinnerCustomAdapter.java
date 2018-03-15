@@ -19,7 +19,7 @@ import java.util.List;
  */
 
 public class SpinnerCustomAdapter extends BaseAdapter {
-    public String empGlobalId = "";
+    String empGlobalId = "";
     Context context;
     private List<SpinnerEmpDetails> empNamesList;
 
