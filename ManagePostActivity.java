@@ -26,6 +26,12 @@ public class ManagePostActivity extends AppCompatActivity {
         fragmentTrans = fragment_manager.beginTransaction();
         fragment = new ContentUserHomeFragment();
         fragmentTrans.add(R.id.fragment_container2, fragment).commit();
+
+        //for the action bar back button (Universal back button)
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
     }
 
     //for showing options menu
@@ -41,10 +47,15 @@ public class ManagePostActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        //for back button on the title bar
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
         if (id == R.id.addIcon) {
             startActivity(new Intent(this, StoriesUploadActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }
+
 
 }

@@ -54,7 +54,6 @@ public class RegisterNewEmpActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_new_emp);
-
         spDesignation = findViewById(R.id.spEmpDesignation);
         progressBar = findViewById(R.id.progress_bar_fetch_designation);
         edName = findViewById(R.id.edEmpName);

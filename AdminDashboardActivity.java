@@ -21,7 +21,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         switch (id) {
 
             case R.id.imgAdminDashboardAddNewStories:
-                intent = new Intent(AdminDashboardActivity.this, StoriesUploadActivity.class);
+                intent = new Intent(AdminDashboardActivity.this, ManagePostActivity.class);
                 startActivity(intent);
                 break;
             case R.id.imgAdminDashboardPayrollMgt:

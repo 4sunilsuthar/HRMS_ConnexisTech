@@ -196,7 +196,7 @@ public class StoriesUploadActivity extends AppCompatActivity {
                 progressDialog.dismiss();
                 Toast.makeText(StoriesUploadActivity.this, response, Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "ServerResponse is: " + response);
-                startActivity(new Intent(StoriesUploadActivity.this, AdminDashboardActivity.class));
+                startActivity(new Intent(StoriesUploadActivity.this, ManagePostActivity.class));
             }
         }, new Response.ErrorListener() {
             @Override
