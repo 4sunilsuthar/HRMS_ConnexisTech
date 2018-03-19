@@ -1,10 +1,7 @@
 package com.lms.admin.lms;
 
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -31,23 +28,12 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -124,7 +110,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             @Override
             public void onResult(@NonNull Status status) {
 //                updateUI(null); //now signedOuts
-                Log.e(TAG, "status: " + status);
+//                Log.e(TAG, "status: " + status);
             }
         });
 
@@ -156,7 +142,9 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
             requestQueue = Volley.newRequestQueue(SignInActivity.this);
             //Call the function to validate user email with the database
             checkAuthorization(email);//
-//            Log.e(TAG, "User Email is :" + email);
+
+
+
           /*  BackgroundTask backgroundTask = new BackgroundTask(this);
             backgroundTask.execute(email);//pass user email and verify it*/
 
@@ -167,21 +155,19 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
     private void checkAuthorization(final String email) {
         final ProgressDialog progressDialog = ProgressDialog.show(this, "Getting you on board", "Please Wait...", false, false);
-//        final StringRequest request = new StringRequest(Request.Method.POST, API_URLs.verifyEmailAPIUrl,null, new Response.Listener<JSONObject>() {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.verifyEmailAPIUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 progressDialog.dismiss();
-                Log.e(TAG, "response is: " + response);
+//                Log.e(TAG, "response is: " + response);
                 // got our result in JSON format now parse it if error comes means user is not authorized
                 try {
-                    String empId = null, email_address = null;
                     JSONObject mainJsonObject = new JSONObject(response);
                     JSONArray jsonArray = mainJsonObject.getJSONArray("server_response");
-                    Log.e(TAG, "jsonArray is : " + jsonArray);
+//                    Log.e(TAG, "jsonArray is : " + jsonArray);
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        Log.e(TAG, "json_object2 is : " + jsonObject.toString());
+//                        Log.e(TAG, "json_object2 is : " + jsonObject.toString());
 //                        empId = jsonObject.getString("emp_id");
 //                        email_address = jsonObject.getString("email_address");
                         Log.e(TAG, "before Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
@@ -190,6 +176,17 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                         Log.e(TAG, "after Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
                     }
                     Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_SHORT).show();
+
+                    //user login successful so now store device token in the database
+                    Log.e(TAG, "User Email is :" + email);
+                    String refreshedToken = FirebaseInstanceId.getInstance().getToken();//the magical line to be used whenever we want the device token...
+                    Log.e(TAG, "SignIn Activity Device Token is: :" + refreshedToken);
+
+                    if (refreshedToken != null && sessionManager.getEmpId() != null) {
+                        //token is generated so now call a method to store the token in the database
+                        sendRegistrationToServer(sessionManager.getEmpId(), refreshedToken);
+                    }
+
                     //now check if user in Admin or Employee
                     //if Admin then show Admin Panel else show Employee HomeFeed Activity
                     //checkUserType();//function to be written here
@@ -212,7 +209,6 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 //                    Log.e(TAG,"this is Error: "+e);
 //                    Log.e(TAG, "after Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
                 }
-
             }
         }, new Response.ErrorListener() {
             @Override
@@ -293,6 +289,96 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 */
     }
 
+
+    private void sendRegistrationToServer(final String empId, final String refreshedToken) {
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Getting you on board", "Please Wait...", false, false);
+//        final StringRequest request = new StringRequest(Request.Method.POST, API_URLs.verifyEmailAPIUrl,null, new Response.Listener<JSONObject>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.sendRegistrationTokenToServerAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Log.e(TAG, "response is: " + response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.e(TAG, "Error : " + error);
+                progressDialog.dismiss();
+                Toast.makeText(SignInActivity.this, "Volley Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("device_token", refreshedToken);
+                params.put("emp_id", empId);
+                Log.e(TAG, "Params :" + params.toString());
+                return params;
+            }
+        };
+        //for default retry policy
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
+
+        /*
+        //        Log.e(TAG, "request sent>>>");
+        @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    Log.e(TAG, "JSONObj: " +response);
+
+                    String empId, email;
+                    JSONArray jsonArray = response.getJSONArray("server_response");
+                    Log.e(TAG, "Response details are: " + jsonArray.toString());
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        empId = jsonObject.getString("emp_id");
+                        email = jsonObject.getString("email_address");
+                        Log.e(TAG, "emp_id: " + empId + " | email:" + email);
+                        //store user details in the session preference
+                        sessionManager.createLoginSession(empId, email); //shared preference created and email is set to current user email value
+                        Toast.makeText(getApplicationContext(), "Yey Login Successful Enjoy Our App", Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
+                    }
+                    progressDialog.dismiss();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.e(TAG, "Error : " + error);
+
+                progressDialog.dismiss();
+                Toast.makeText(SignInActivity.this, "Volley Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("user_email_addr", email);
+                Log.e(TAG,"Params :"+params.toString());
+                return params;
+            }
+        };
+        //for default retry policy
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(request);
+//        Log.e(TAG, "request sent>>>");
+
+
+*/
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -304,6 +390,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
     }
 
 
+   /*
     //<<< background task  to be run on another thread for user sign in >>>
     @SuppressLint("StaticFieldLeak")
     class BackgroundTask extends AsyncTask<String, Void, String> {
@@ -387,5 +474,6 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 
         }
     }
+*/
 }
 

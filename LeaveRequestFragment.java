@@ -272,8 +272,40 @@ public class LeaveRequestFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 //code to reset the form
+                http:
+//localhost/hrms_app/push_notifications.php
+                //CALL THE METHOD HERE
+                sendNotification();
             }
         });
+
+    }
+
+
+    private void sendNotification() {
+        final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Getting you on board", "Please Wait...", false, false);
+//        final StringRequest request = new StringRequest(Request.Method.POST, API_URLs.verifyEmailAPIUrl,null, new Response.Listener<JSONObject>() {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.pushNotificationsAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Log.e(TAG, "response is: " + response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.e(TAG, "Error : " + error);
+                progressDialog.dismiss();
+                Toast.makeText(getContext(), "Volley Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        });
+        //for default retry policy
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(stringRequest);
 
     }
 

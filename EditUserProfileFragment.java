@@ -389,7 +389,7 @@ public class EditUserProfileFragment extends Fragment {
             SessionManager sessionManager = new SessionManager(getContext());
             final HashMap<String, String> userDetails = sessionManager.getUserDetails();
 //            Log.e(TAG, "UserDetails are : " + userDetails.get("user_id"));
-            this.empId = userDetails.get(SessionManager.KEY_EMPID);
+            this.empId = userDetails.get(SessionManager.KEY_EMP_ID);
             Log.e(TAG, "Fetched UserDetails are : " + this.empId);
             this.name = name;
             this.phone = phone;

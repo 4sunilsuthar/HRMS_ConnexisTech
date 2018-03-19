@@ -17,6 +17,8 @@ public class API_URLs {
     static final String updateUserProfileDetailsAPIUrl = "http://192.168.0.112/hrms_app/update_user_profile_details.php";
     static final String verifyEmailAPIUrl = "http://192.168.0.112/hrms_app/verify_email.php";
     static final String saveLeaveDetailsAPIUrl = "http://192.168.0.112/hrms_app/save_leave_request_details.php";
+    static final String sendRegistrationTokenToServerAPIUrl = "http://192.168.0.112/hrms_app/send_registration_token_to_server.php";
+    static final String pushNotificationsAPIUrl = "http://192.168.0.112/hrms_app/push_notifications.php";
 
 
 /*    public static void getMyIP(){

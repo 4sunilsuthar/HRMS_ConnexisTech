@@ -15,9 +15,9 @@ import java.util.HashMap;
 
 public class SessionManager {
     // User name (make variable public to access from outside)
-    public static final String KEY_EMPID = "emp_id";
+    static final String KEY_EMP_ID = "emp_id";
     // Email address (make variable public to access from outside)
-    public static final String KEY_EMAIL = "email";
+    private static final String KEY_EMAIL = "email";
     // SharedPref file name
     private static final String PREF_NAME = "HRMSAppPref";
     // All Shared Preferences Keys
@@ -31,7 +31,7 @@ public class SessionManager {
 
     // Constructor
     @SuppressLint("CommitPrefEdits")
-    public SessionManager(Context context) {
+    SessionManager(Context context) {
         this._context = context;
         int PRIVATE_MODE = 0;
         pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
@@ -47,7 +47,7 @@ public class SessionManager {
         editor.putBoolean(IS_LOGIN, true);
 
         // Storing name in pref
-        editor.putString(KEY_EMPID, emp_id);
+        editor.putString(KEY_EMP_ID, emp_id);
 
         // Storing email in pref
         editor.putString(KEY_EMAIL, email);
@@ -90,7 +90,7 @@ public class SessionManager {
     HashMap<String, String> getUserDetails() {
         HashMap<String, String> user = new HashMap<String, String>();
         // user name
-        user.put(KEY_EMPID, pref.getString(KEY_EMPID, null));
+        user.put(KEY_EMP_ID, pref.getString(KEY_EMP_ID, null));
 
         // user email id
         user.put(KEY_EMAIL, pref.getString(KEY_EMAIL, null));
@@ -141,7 +141,7 @@ public class SessionManager {
     }
 
     String getEmpId() {
-        return pref.getString(KEY_EMPID, null);
+        return pref.getString(KEY_EMP_ID, null);
     }
 
 }
