@@ -34,6 +34,7 @@ public class MyFirebaseInstanceIdService extends FirebaseInstanceIdService {
         //we can get the user_id from the saved shared preference and if it is null then we can't just yet send the token to the server
         //so wait till the user log in and then at the time of the login we will send the token to the server also
         Log.e(TAG, "User Logged in : " + new SessionManager(this).isLoggedIn());
+        Log.e(TAG, "User Token is : " + refreshedToken);
 //        if(getSharedPreferences(new SessionManager(this).PREF_NAME))
 
 

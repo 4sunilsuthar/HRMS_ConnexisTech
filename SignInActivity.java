@@ -172,7 +172,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
 //                        email_address = jsonObject.getString("email_address");
                         Log.e(TAG, "before Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
                         //store user details in the session preference
-                        sessionManager.createLoginSession(jsonObject.getString("emp_id"), jsonObject.getString("email_address")); //shared preference created and email is set to current user email value
+                        sessionManager.createLoginSession(jsonObject.getString("emp_id"), jsonObject.getString("email_address"), jsonObject.getString("name")); //shared preference created and name and email is set to current user name and email value
                         Log.e(TAG, "after Pref Values Are : " + Collections.singletonList(sessionManager.getUserDetails()));
                     }
                     Toast.makeText(getApplicationContext(), "Login Successful Enjoy Our App", Toast.LENGTH_SHORT).show();
@@ -190,14 +190,13 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                     //now check if user in Admin or Employee
                     //if Admin then show Admin Panel else show Employee HomeFeed Activity
                     //checkUserType();//function to be written here
-                    if (sessionManager.getUserEmail().equals("sunil.suthar@connexistech.com")) {
+                    if (sessionManager.getUserEmail().equals("sunil.suthar@connexistech.com")) { // change it @@@#########
                         //fr Admin
                         startActivity(new Intent(SignInActivity.this, AdminDashboardActivity.class));
                     } else {
                         //for Employees
                         startActivity(new Intent(SignInActivity.this, UserHomeActivity.class));
                     }
-
 
                 } catch (JSONException e) {
                     e.printStackTrace();

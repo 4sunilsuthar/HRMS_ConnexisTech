@@ -18,6 +18,7 @@ public class SessionManager {
     static final String KEY_EMP_ID = "emp_id";
     // Email address (make variable public to access from outside)
     private static final String KEY_EMAIL = "email";
+    private static final String KEY_EMP_NAME = "name";
     // SharedPref file name
     private static final String PREF_NAME = "HRMSAppPref";
     // All Shared Preferences Keys
@@ -41,16 +42,19 @@ public class SessionManager {
     /**
      * Create login session
      */
-    public void createLoginSession(String emp_id, String email) {
+    void createLoginSession(String emp_id, String email, String empName) {
 //    public void createLoginSession(String name, String email){
         // Storing login value as TRUE
         editor.putBoolean(IS_LOGIN, true);
 
-        // Storing name in pref
+        // Storing emp_id in pref
         editor.putString(KEY_EMP_ID, emp_id);
 
         // Storing email in pref
         editor.putString(KEY_EMAIL, email);
+
+        // Storing name in pref
+        editor.putString(KEY_EMP_NAME, empName);
 
         // commit changes
         editor.commit();
@@ -61,7 +65,7 @@ public class SessionManager {
      * If false it will redirect user to login page
      * Else won't do anything
      */
-    public void checkLogin() {
+    void checkLogin() {
         // Check login status
         if (!this.isLoggedIn()) {
             // user is not logged in redirect him to Login Activity
@@ -139,6 +143,12 @@ public class SessionManager {
     String getUserEmail() {
         return pref.getString(KEY_EMAIL, null);
     }
+
+    String getUserName() {
+        return pref.getString(KEY_EMP_NAME, null);
+    }
+
+
 
     String getEmpId() {
         return pref.getString(KEY_EMP_ID, null);

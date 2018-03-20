@@ -44,10 +44,21 @@ public class UserHomeActivity extends AppCompatActivity
 
         fragment_manager = this.getSupportFragmentManager();
         fragmentTrans = fragment_manager.beginTransaction();
-        fragment = new ContentUserHomeFragment();
-        fragmentTrans.add(R.id.fragment_container1, fragment).commit();
 
-
+        //check if activity is called from a notification or not
+        String menuFragment = getIntent().getStringExtra("menuFragment");
+        // If menuFragment is defined, then this activity was launched with a fragment selection
+        if (menuFragment != null) {
+            // Here we can decide what do to -- perhaps load other parameters from the intent extras such as IDs, etc
+            if (menuFragment.equals("leaveRequestInboxFragment")) {
+                fragment = new InboxStructureFragment();
+                fragmentTrans.add(R.id.fragment_container1, fragment).commit();
+            }
+        } else {
+            // Activity was not launched with a menuFragment selected -- continue as if this activity was opened from a launcher (for example)
+            fragment = new ContentUserHomeFragment();
+            fragmentTrans.add(R.id.fragment_container1, fragment).commit();
+        }
     }
 
     @Override

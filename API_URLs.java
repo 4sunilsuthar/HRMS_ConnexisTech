@@ -19,7 +19,7 @@ public class API_URLs {
     static final String saveLeaveDetailsAPIUrl = "http://192.168.0.112/hrms_app/save_leave_request_details.php";
     static final String sendRegistrationTokenToServerAPIUrl = "http://192.168.0.112/hrms_app/send_registration_token_to_server.php";
     static final String pushNotificationsAPIUrl = "http://192.168.0.112/hrms_app/push_notifications.php";
-
+    static final String getPendingLeaveRequestsAPIUrl = "http://192.168.0.112/hrms_app/get_pending_leave_requests.php";
 
 /*    public static void getMyIP(){
         Log.e("MyIPTag","my IP Called...");

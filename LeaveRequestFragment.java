@@ -200,12 +200,10 @@ public class LeaveRequestFragment extends Fragment {
                 final String leaveType, leaveSubject, leaveTotalDays, leaveDesc;
                 leaveType = spinLeaveType.getSelectedItem().toString();
                 leaveSubject = edSubject.getText().toString().trim();
-//                leaveFrom = edDateFrom.getText().toString().trim();//just to check if date entered or not
-//                leaveTill = edDateTo.getText().toString().trim();//just to check if date entered or not
                 leaveTotalDays = totalLeaveDays.getText().toString().trim();
                 leaveDesc = edDescription.getText().toString().trim();
 
-                if (TextUtils.isEmpty(leaveType) && TextUtils.isEmpty(leaveSubject) && TextUtils.isEmpty(edDateFrom.getText().toString().trim()) && TextUtils.isEmpty(edDateTo.getText().toString().trim()) && TextUtils.isEmpty(leaveTotalDays)) {
+                if (!TextUtils.isEmpty(leaveType) && TextUtils.isEmpty(leaveSubject) && TextUtils.isEmpty(edDateFrom.getText().toString().trim()) && TextUtils.isEmpty(edDateTo.getText().toString().trim()) && TextUtils.isEmpty(leaveTotalDays)) {
                     //Toast.makeText(getContext(), "Request Values are: leaveType: " + leaveType + " | leaveSubject: " + leaveSubject + " | leaveFrom: " + leaveFrom + " | leaveTill: " + leaveTill + " | totalDays: " + leaveTotalDays + " | leaveDesc: " + leaveDesc, Toast.LENGTH_SHORT).show();
 //                    Log.e(TAG,""+"Request Values are: empId: 8 | leaveType: " + leaveType + " | leaveSubject: " + leaveSubject + " | leaveFrom: " + leaveFrom + " | leaveTill: " + leaveTill + " | totalDays: " + leaveTotalDays + " | leaveDesc: " + leaveDesc);
                     Toast.makeText(getContext(), "fill all the values to continue", Toast.LENGTH_SHORT).show();
@@ -231,13 +229,9 @@ public class LeaveRequestFragment extends Fragment {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 // Request for the Leave
-
-
                                 //get emp_id because only signed in users can request for leave
                                 String empId = new SessionManager(getContext()).getEmpId();
                                 Log.e(TAG, "empId is: " + empId);
-
-
                                 //get request date and fromDate and toDate in the database date format
                                 String leaveFrom = changeDateFormat(mDateFrom.getTime());
                                 String leaveTill = changeDateFormat(mDateTo.getTime());
@@ -249,9 +243,11 @@ public class LeaveRequestFragment extends Fragment {
                                 //call the API to save these details into the database
                                 //invoke the function with the API call with volley
                                 saveLeaveDetails(empId, leaveType, leaveSubject, leaveFrom, leaveTill, leaveTotalDays, leaveDesc, requestDate);
+                                //sending leave request notification to the higher authority
+                                Log.e(TAG, "Calling sendNotification()...");
+                                sendNotification(new SessionManager(getContext()).getUserName());//pass employee name to the function to display it in the notification
                                 //show home posts fragment after background request
                                 //startActivity(new Intent(RegisterNewEmpActivity.this, AdminDashboardActivity.class));
-
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -262,8 +258,6 @@ public class LeaveRequestFragment extends Fragment {
                             }
                         })
                         .show().setCanceledOnTouchOutside(false);
-
-
             }
         });
 
@@ -272,17 +266,12 @@ public class LeaveRequestFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 //code to reset the form
-                http:
-//localhost/hrms_app/push_notifications.php
-                //CALL THE METHOD HERE
-                sendNotification();
             }
         });
-
     }
 
-
-    private void sendNotification() {
+    //code to send notification to the sr.
+    private void sendNotification(final String empName) {
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Getting you on board", "Please Wait...", false, false);
 //        final StringRequest request = new StringRequest(Request.Method.POST, API_URLs.verifyEmailAPIUrl,null, new Response.Listener<JSONObject>() {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.pushNotificationsAPIUrl, new Response.Listener<String>() {
@@ -299,19 +288,31 @@ public class LeaveRequestFragment extends Fragment {
                 progressDialog.dismiss();
                 Toast.makeText(getContext(), "Volley Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
             }
-        });
+        }) {
+
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                //demo title is : New Leave Request
+                //demo message is : Mr.Emp is requesting for Leave for 5 days
+                //
+                String title = "New Leave Request";
+                String message = empName + " is requesting for leave";
+                params.put("title", title);
+                params.put("message", message);
+                return params;
+            }
+        };
         //for default retry policy
         stringRequest.setRetryPolicy(new DefaultRetryPolicy(
                 DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         requestQueue.add(stringRequest);
-
     }
 
 
     private void getLeaveTypesInSpinner() {
-
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Getting you on board", "Please Wait...", false, false);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, API_URLs.getLeaveTypesAPIUrl, null, new Response.Listener<JSONObject>() {
             @Override
