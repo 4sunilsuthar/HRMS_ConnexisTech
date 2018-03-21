@@ -15,8 +15,6 @@ public class PostStory {
         this.username = username;
         this.profileImg = profileImg;
         this.date = date;
-
-
     }
 
     public String getTitleMsg() {

@@ -20,13 +20,14 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -73,9 +74,8 @@ public class InboxStructureFragment extends Fragment {
         //        call volley background request here
         //background volley request here
         requestQueueLeaveRequests = Volley.newRequestQueue(getContext());
+        Log.e(TAG, "empId is:> " + new SessionManager(getContext()).getEmpId());
         parseJSONLeaveRequests();
-
-
     }
 
 
@@ -147,39 +147,60 @@ public class InboxStructureFragment extends Fragment {
     private void parseJSONLeaveRequests() {
 
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Getting you on board", "Please Wait...", false, false);
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, API_URLs.getPendingLeaveRequestsAPIUrl, null, new Response.Listener<JSONObject>() {
+        final StringRequest request = new StringRequest(Request.Method.POST, API_URLs.getPendingLeaveRequestsAPIUrl, new Response.Listener<String>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(String response) {
                 try {
-                    String request_id, emp_name, fromDate, toDate, totalDays, subject, description, profile_image_url, requestDate;
-                    JSONArray jsonArray = response.getJSONArray("server_response");
-                    Log.e(TAG, "Posts details are: " + jsonArray.toString());
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject jsonObject = jsonArray.getJSONObject(i);
-                        request_id = jsonObject.getString("leave_details_id");
-                        emp_name = jsonObject.getString("user_name");
-                        fromDate = jsonObject.getString("leave_from");
-                        toDate = jsonObject.getString("leave_to");
-                        totalDays = jsonObject.getString("total_days");
-                        subject = jsonObject.getString("subject");
-                        description = jsonObject.getString("description");
-                        profile_image_url = jsonObject.getString("profile_img_url");
-                        requestDate = jsonObject.getString("request_date");
+                    Log.e(TAG, "jsonArray is: " + response);
+                    if (response.trim().equals("NoRecordsFound")) {
+                        Log.e(TAG, "No Records Found Show some Image here");
+                        //hide the recycler view and display the empty screen text and icon
+                        mRecyclerView.setVisibility(View.GONE);
+                        getView().findViewById(R.id.tv_empty_view).setVisibility(View.VISIBLE);
+                        getView().findViewById(R.id.img_empty_view).setVisibility(View.VISIBLE);
+                    } else {
+                        JSONObject jsonObjectResponse = new JSONObject(response);
+                        JSONArray jsonArray = jsonObjectResponse.getJSONArray("server_response");
+                        String request_id, emp_name, leaveType, fromDate, toDate, totalDays, subject, description, profile_image_url, requestDate;
 
-                        //call the dateDiff function to set value of date differences
-                        //convert the dates from b format to the ui format
+                        Log.e(TAG, "Pending Leave Details are: " + jsonArray.toString());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            request_id = jsonObject.getString("leave_detail_id");
+                            emp_name = jsonObject.getString("user_name");
+                            leaveType = jsonObject.getString("leave_type");
+                            fromDate = jsonObject.getString("date_from");
+                            toDate = jsonObject.getString("date_to");
+                            totalDays = jsonObject.getString("total_days");
+                            subject = jsonObject.getString("subject");
+                            description = jsonObject.getString("description");
+                            profile_image_url = jsonObject.getString("profile_img_url");
+                            requestDate = jsonObject.getString("request_date");
+
+                            //use DateHelper Class to convert date formats call the convertDateFormat() function to convert the dates from db format to the ui format
+                            Log.e(TAG, "old Date is: " + fromDate);
+                            fromDate = new DateHelper().convertDateToUI(fromDate);
+                            Log.e(TAG, "new Date is: " + fromDate);
+
+                            toDate = new DateHelper().convertDateToUI(toDate);
+                            requestDate = new DateHelper().convertDateToUI(requestDate);
+
 //                        String diff = getDateDiff(date, time);
 //                    Log.e(TAG, "dateDiff msg is : " + diff);
 //                    Log.e(TAG, "dateDiff msg is : " + diff);
-                        //set this to the Adapter
-                        PendingLeaveRequest pendingLeaveRequest = new PendingLeaveRequest(request_id, emp_name, fromDate, toDate, totalDays, subject, description, profile_image_url, requestDate);
-                        leaveRequestsList.add(pendingLeaveRequest);
-                        leaveRequestsAdapter = new LeaveRequestsAdapter(getContext(), leaveRequestsList);
-                        mRecyclerView.setAdapter(leaveRequestsAdapter);
+                            //set this to the Adapter
+                            PendingLeaveRequest pendingLeaveRequest = new PendingLeaveRequest(request_id, emp_name, leaveType, fromDate, toDate, totalDays, subject, description, profile_image_url, requestDate);
+                            leaveRequestsList.add(pendingLeaveRequest);
+                            leaveRequestsAdapter = new LeaveRequestsAdapter(getContext(), leaveRequestsList);
+                            mRecyclerView.setAdapter(leaveRequestsAdapter);
+                        }
                     }
                     progressDialog.dismiss();
                 } catch (JSONException e) {
                     e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+
                 }
             }
         }, new Response.ErrorListener() {
@@ -193,7 +214,9 @@ public class InboxStructureFragment extends Fragment {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("my_emp_id", new SessionManager(getContext()).getEmpId());//get myEmpId and Send it for
+//                Log.e(TAG, "Setting Params here : ");
+//                Log.e(TAG, "emp_id is: " + params.toString());
+                params.put("emp_id", new SessionManager(getContext()).getEmpId());//get myEmpId and Send it for further operations
                 return params;
             }
         };
@@ -204,6 +227,5 @@ public class InboxStructureFragment extends Fragment {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         requestQueueLeaveRequests.add(request);
     }
-
-
 }
+

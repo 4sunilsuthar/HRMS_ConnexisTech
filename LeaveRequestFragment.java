@@ -243,6 +243,7 @@ public class LeaveRequestFragment extends Fragment {
                                 //call the API to save these details into the database
                                 //invoke the function with the API call with volley
                                 saveLeaveDetails(empId, leaveType, leaveSubject, leaveFrom, leaveTill, leaveTotalDays, leaveDesc, requestDate);
+                                //find the higher Authority from db (to whom I am Reporting )
                                 //sending leave request notification to the higher authority
                                 Log.e(TAG, "Calling sendNotification()...");
                                 sendNotification(new SessionManager(getContext()).getUserName());//pass employee name to the function to display it in the notification
@@ -298,6 +299,7 @@ public class LeaveRequestFragment extends Fragment {
                 //
                 String title = "New Leave Request";
                 String message = empName + " is requesting for leave";
+                params.put("emp_id", new SessionManager(getContext()).getEmpId());//@@@@@@@@@@@@@change it with the Id of the user to whom emp is reporting_to
                 params.put("title", title);
                 params.put("message", message);
                 return params;
@@ -374,7 +376,6 @@ public class LeaveRequestFragment extends Fragment {
 
             }
         }) {
-
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
