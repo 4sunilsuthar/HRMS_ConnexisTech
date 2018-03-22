@@ -1,5 +1,7 @@
 package com.lms.admin.lms;
 
+import android.util.Log;
+
 /**
  * Created by Admin on 20-03-2018.
  */
@@ -22,6 +24,7 @@ public class PendingLeaveRequest {
     }
 
     public String getRequest_id() {
+        Log.e("PLR", "returned request id is :" + request_id);
         return request_id;
     }
 

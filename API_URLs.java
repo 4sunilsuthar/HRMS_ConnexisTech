@@ -21,6 +21,8 @@ public class API_URLs {
     static final String pushNotificationsAPIUrl = "http://192.168.0.112/hrms_app/push_notifications.php";
     static final String pushResponseNotificationsAPIUrl = "http://192.168.0.112/hrms_app/push_response_notifications.php";
     static final String getPendingLeaveRequestsAPIUrl = "http://192.168.0.112/hrms_app/get_pending_leave_requests.php";
+    static final String getUserPendingLeaveRequestsAPIUrl = "http://192.168.0.112/hrms_app/get_pending_leave_requests_user.php";
+    static final String getLeaveRequestsSummaryAPIUrl = "http://192.168.0.112/hrms_app/get_leave_requests_summary.php";
     static final String approveLeaveRequestAPIUrl = "http://192.168.0.112/hrms_app/approve_leave_request.php";
     static final String showUserProfileAPIUrl = "http://192.168.0.112/hrms_app/show_user_profile.php";
 
