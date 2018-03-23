@@ -92,7 +92,6 @@ public class StoriesUploadActivity extends AppCompatActivity {
                 if (bitmap != null) {
                     imageByteString = imageToString(bitmap);
                 }
-
                 // #1.call the alertDialog for confirmation of post upload
                 new AlertDialog.Builder(StoriesUploadActivity.this, R.style.CustomDialogTheme)
                         .setIcon(R.drawable.ic_warning_white)

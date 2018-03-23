@@ -135,7 +135,6 @@ public class UserHomeActivity extends AppCompatActivity
 //                    Toast.makeText(context, response, Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "ServerResponse is: " + response);
                 try {
-//                    Log.e(TAG, "jsonArray is: " + response);
                     if (response.trim().equals("NoImageFound")) {
                         Log.e(TAG, "No Image Found Show Dummy Image here");
                         //showing dummy image when no image available

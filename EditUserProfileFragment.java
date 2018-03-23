@@ -1,19 +1,18 @@
 package com.lms.admin.lms;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,6 +23,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -32,20 +39,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class EditUserProfileFragment extends Fragment {
     private static final String TAG = "EditUserProfileFragment";
@@ -53,7 +53,9 @@ public class EditUserProfileFragment extends Fragment {
     String name, phone, qualification, gender, address, skills, coverArtImgUrl, profileImgUrl;
     Bitmap bitmapProfile, bitmapCoverArt;
     private EditText edEmpName, edEmpGender, edEmpPhone, edEmpAddress, edEmpTopSkills, edEmpQualification;
-    private ImageView imgEmpProfile, imgCoverArt;
+    private ImageView imgCoverArt;
+    private CircleImageView imgEmpProfile;
+    private RequestQueue requestQueue;
 
 
     @Override
@@ -71,8 +73,16 @@ public class EditUserProfileFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        //call the background task here to fetch initial data here if available
-        new BackgroundTask().execute();//execute the background task to fetch initial data
+        //when view is created then fetch values from db and display it here
+        //also make sure only values existing are to be shown
+        //hide other layouts completely
+        //execute the background task and perform desired operations
+        //generate new volley background request here
+        requestQueue = Volley.newRequestQueue(getContext());
+        //Call the function to upload the post to the server
+        Log.e(TAG, "My Emp_id :> " + new SessionManager(getContext()).getEmpId());
+        Log.e(TAG, "Calling volley request");
+        getUserProfileDetails(new SessionManager(getContext()).getEmpId());//passing empId to fetch user details//call the background task here to fetch initial data here if available
 
     }
 
@@ -91,7 +101,7 @@ public class EditUserProfileFragment extends Fragment {
 //        tvEmpEmail = getView().findViewById(R.id.ed_edit_email);
         imgCoverArt = getView().findViewById(R.id.img_edit_cover_art);
         imgEmpProfile = getView().findViewById(R.id.img_edit_profile_image);
-//        setting the buttons
+//        setting the pencil buttons
         ImageView imgBtnEditEmpProfile = getView().findViewById(R.id.btn_update_profile_image);
         ImageView imgBtnEditCoverArt = getView().findViewById(R.id.btn_update_cover_art);
 
@@ -163,16 +173,55 @@ public class EditUserProfileFragment extends Fragment {
                                 //run background task to save emp details
                                 //get all values
 
-                                name = edEmpName.getText().toString().trim();
-                                gender = edEmpGender.getText().toString().trim();
-                                qualification = edEmpQualification.getText().toString().trim();
-                                phone = edEmpPhone.getText().toString().trim();
-                                skills = edEmpTopSkills.getText().toString().trim();
-                                address = edEmpAddress.getText().toString().trim();
 
-//                                call background task to update data in the database
-                                UpdateEmpProfileData updateEmpProfileData = new UpdateEmpProfileData(name, gender, qualification, phone, address, skills, profileImgUrl, coverArtImgUrl);
-                                updateEmpProfileData.execute();//calling background task
+                                if (!TextUtils.isEmpty(edEmpName.getText().toString().trim())) {
+                                    name = edEmpName.getText().toString().trim();
+                                }
+
+                                if (!TextUtils.isEmpty(edEmpGender.getText().toString().trim())) {
+                                    gender = edEmpGender.getText().toString().trim();
+                                }
+
+                                if (!TextUtils.isEmpty(edEmpQualification.getText().toString().trim())) {
+                                    qualification = edEmpQualification.getText().toString().trim();
+                                }
+                                /*if (TextUtils.isEmpty(qualification))
+                                    qualification = null;
+*/
+                                if (!TextUtils.isEmpty(edEmpPhone.getText().toString().trim())) {
+                                    phone = edEmpPhone.getText().toString().trim();
+                                }
+
+                                if (!TextUtils.isEmpty(edEmpTopSkills.getText().toString().trim())) {
+                                    skills = edEmpTopSkills.getText().toString().trim();
+                                }
+
+                                if (!TextUtils.isEmpty(edEmpAddress.getText().toString().trim())) {
+                                    address = edEmpAddress.getText().toString().trim();
+                                }
+
+                                //before creating URLConnection Compress and Convert ProfileImg and CoverImg into Strings
+                                if (bitmapProfile != null) {
+                                    ByteArrayOutputStream byteArrayOutputStreamObject;
+                                    byteArrayOutputStreamObject = new ByteArrayOutputStream();
+                                    bitmapProfile.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStreamObject);
+                                    byte[] byteArrayVar = byteArrayOutputStreamObject.toByteArray();
+                                    profileImgUrl = Base64.encodeToString(byteArrayVar, Base64.DEFAULT); //when profile image is updated
+                                }
+                                if (bitmapCoverArt != null) {
+                                    ByteArrayOutputStream byteArrayOutputStreamObject;
+                                    byteArrayOutputStreamObject = new ByteArrayOutputStream();
+                                    bitmapCoverArt.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStreamObject);
+                                    byte[] byteArrayVar = byteArrayOutputStreamObject.toByteArray();
+                                    coverArtImgUrl = Base64.encodeToString(byteArrayVar, Base64.DEFAULT);//when profile image is updated
+                                }
+//                              //generate new volley background request here
+                                requestQueue = Volley.newRequestQueue(getContext());
+                                //Call the function to upload the post to the server
+                                Log.e(TAG, "My Emp_id :> " + new SessionManager(getContext()).getEmpId());
+                                Log.e(TAG, "Calling volley request");
+                                updateUserProfileDetails(new SessionManager(getContext()).getEmpId(), name, phone, qualification, gender, address, skills, profileImgUrl, coverArtImgUrl);//passing empId to update user details
+
                                 //now go to user home feeds
 //                                startActivity(new Intent(RegisterNewEmpActivity.this, AdminDashboardActivity.class));
                             }
@@ -192,13 +241,7 @@ public class EditUserProfileFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 //code here to update user profile
-
                 //Call background task with the call to API to update user Profile Details
-
-
-
-
-
             }
         });*/
 
@@ -248,137 +291,268 @@ public class EditUserProfileFragment extends Fragment {
         }
     }
 
-    public class BackgroundTask extends AsyncTask<Void, PostStory, String> {
-
-        JSONObject jsonObject;
-        JSONArray jsonArray;
-        //        String get_user_profile_details_url = "http://192.168.0.128/hrms_app/get_user_profile_details.php";//old URL
-        ProgressDialog progressDialog;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            //show progress dialog here
-            progressDialog = ProgressDialog.show(getContext(), "Getting you on board", "Please Wait...", false, false);
-        }
-
-        @Override
-        protected String doInBackground(Void... voids) {
-            try {
-//                URL url = new URL(API_URLs.getUserDetailsAPIUrl);
-                URL url = new URL(API_URLs.getUserProfileDetailsAPIUrl);
-                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.setDoOutput(true);
-                InputStream inputStream = httpURLConnection.getInputStream();
-
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuilder result = new StringBuilder();
-                String line;
-
-                while ((line = bufferedReader.readLine()) != null) {
-                    result.append(line);
-                }
-                bufferedReader.close();
-                inputStream.close();
-                httpURLConnection.disconnect();
-                Log.e(TAG, "result is : " + result);
-                return result.toString().trim();
-                /*
-                // got our result in JSON format now parse it
-                JSONObject jsonObject = new JSONObject(result.toString());
-                JSONArray jsonArray = jsonObject.getJSONArray("server_response");
-                int count = 0;
-                while (count < jsonArray.length()) {
-                    JSONObject jo = jsonArray.getJSONObject(count);
-                    count++;
-                    PostStory postStory = new PostStory(jo.getString("date"), jo.getString("time"), jo.getString("text_message"), jo.getString("image_url"), jo.getString("added_by"));
-//                    publishProgress(postStory);
-                }
-                return result.toString().trim(); //returning result from the web service
-                */
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-//            return "Something Went Wrong... Please Try Again!!!!";
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            //result is ready now parse it and sent it to the adapter
-            Log.e(TAG, "Latest JSON received is : " + result);
-            progressDialog.dismiss();
-            //parse the result with the function
-            parseResult(result.toString().trim());
-
-        }
-
-        private void parseResult(String result) {
-
-            try {
-                jsonObject = new JSONObject(result);
-                jsonArray = jsonObject.getJSONArray("server_response");
-                int count = 0;
-//                String name, phone, qualification, gender, address, skills, coverArtImgUrl, profileImgUrl;
-                Log.e(TAG, "Array Length is : " + jsonArray.length());
-                while (count < jsonArray.length()) {
-
-                    JSONObject jsonObject2 = jsonArray.getJSONObject(count);
-                    name = jsonObject2.getString("name");
-                    phone = jsonObject2.getString("phone");
-                    address = jsonObject2.getString("address");
-                    qualification = jsonObject2.getString("qualification");
-                    gender = jsonObject2.getString("gender");
-                    skills = jsonObject2.getString("skills");
-                    coverArtImgUrl = jsonObject2.getString("coverArtImgUrl");
-                    profileImgUrl = jsonObject2.getString("profileImgUrl");
-
-                    //set the fetched data into the editTexts for default data purpose
-                    Log.e(TAG, "Name: " + name + "\n Gender: " + gender + "\n Address: " + address + "\n Phone: " + phone + "\n Qualification: " + qualification + "\n Top 5 Skills: " + skills);
-                    if (name != null)
-                        edEmpName.setText(name);
-                    if (gender != null)
-                        edEmpGender.setText(gender);
-                    if (address != null)
-                        edEmpAddress.setText(address);
-                    if (phone != null)
-                        edEmpPhone.setText(phone);
-                    if (qualification != null)
-                        edEmpQualification.setText(qualification);
-                    if (skills != null)
-                        edEmpTopSkills.setText(skills);
-
-                    //setting image URLs here
-                    if (profileImgUrl.equals("null")) {
-                        //set default profile image if not provided
-                        imgEmpProfile.setBackgroundResource(R.drawable.person);//showing demo image till load
+    //volley background code to fetch emp profile details
+    private void getUserProfileDetails(final String empId) {
+        final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Getting you on board", "Please Wait...", false, false);
+        StringRequest request = new StringRequest(Request.Method.POST, API_URLs.getUserProfileDetailsAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.e(TAG, "ServerResponse is: " + response);
+                try {
+                    Log.e(TAG, "ServerResponse is: " + response);
+                    if (response.trim().equals("NoRecordFound")) {
+                        Log.e(TAG, "No Profile Found Show Dummy here");
+                        //showing dummy image when no image available
+//                        Picasso.with(getContext()).load(R.drawable.person).into(actionBarUserImg);
+//                        Picasso.with(UserHomeActivity.this).load(R.drawable.person).into(navHeaderUserImg);
                     } else {
-                        //assign the value to respective field
-                        Picasso.with(getContext()).load(Uri.parse(profileImgUrl)).into(imgEmpProfile);//assign user customized image
-                    }
+                        JSONObject jsonObjectResponse = new JSONObject(response);
+                        String email;
+                        JSONArray jsonArray = jsonObjectResponse.getJSONArray("server_response");
+                        Log.e(TAG, "profile<><><><> details are: " + jsonArray.toString());
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+                            name = jsonObject.getString("name");
+                            email = jsonObject.getString("email");//get if want to print email address
+                            phone = jsonObject.getString("phone");
+                            address = jsonObject.getString("address");
+                            qualification = jsonObject.getString("qualification");
+                            gender = jsonObject.getString("gender");
+                            skills = jsonObject.getString("skills");
+                            coverArtImgUrl = jsonObject.getString("coverArtImgUrl");
+                            profileImgUrl = jsonObject.getString("profileImgUrl");
 
-                    //for cover art image
-                    if (coverArtImgUrl.equals("null")) {
-                        //set default cover art if not provided
-                        imgCoverArt.setBackgroundResource(R.drawable.picture_post3);//showing demo image till load
+//                    checking if any value is null then hide that layout from the main screen
+                            if (name.equals("null")) {
+                                Log.e(TAG, "name is Null");
+                                edEmpName.setText("");
+                            } else {
+                                edEmpName.setText(name);
+                            }
 
-                    } else {
-                        //assign the value to respective field
-                        Picasso.with(getContext()).load(Uri.parse(coverArtImgUrl)).into(imgCoverArt);//assign user customized image
+                            if (gender.equals("null")) {
+                                edEmpGender.setText("");
+                            } else {
+                                edEmpGender.setText(gender);
+                            }
+
+                            if (phone.equals("null")) {
+                                edEmpPhone.setText("");
+                            } else {
+                                edEmpPhone.setText(phone);
+                            }
+
+                            if (address.equals("null")) {
+                                edEmpAddress.setText("");
+
+                            } else {
+                                edEmpAddress.setText(address);
+                            }
+
+                            if (skills.equals("null")) {
+                                edEmpTopSkills.setText("");//set empty value here
+                            } else {
+                                edEmpTopSkills.setText(skills);
+                            }
+
+                            if (qualification.equals("null")) {
+                                edEmpQualification.setText("");//set empty value here
+                            } else {
+                                edEmpQualification.setText(qualification);
+                            }
+
+                            if (coverArtImgUrl.equals("null")) {
+                                Picasso.with(getContext()).load(R.drawable.picture_post3).into(imgCoverArt);//showing dummy image when no image available
+                            } else {
+                                Picasso.with(getContext()).load(coverArtImgUrl).into(imgCoverArt);//assign user customized image
+                            }
+
+                            if (profileImgUrl.equals("null")) {
+                                Picasso.with(getContext()).load(R.drawable.person).into(imgEmpProfile);//showing dummy image when no image available
+                            } else {
+                                Picasso.with(getContext()).load(profileImgUrl).into(imgEmpProfile);//assign user customized image
+                            }
+                        }
+                        progressDialog.dismiss();
                     }
-                    count++;
-                }//end of while loop
-            } catch (JSONException e) {
-                e.printStackTrace();
+                } catch (JSONException e) {
+                    Log.e(TAG, "Json Exception: " + e);
+                    e.printStackTrace();
+                }
             }
-        }
-
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.e(TAG, "Server returns error response");
+                progressDialog.dismiss();
+                Toast.makeText(getContext(), "Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("emp_id", empId);
+                Log.e(TAG, "params : " + params.toString());
+                return params;
+            }
+        };
+        //for default retry policy
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(request);//add the request to requestQueue queue
     }
 
+    private void updateUserProfileDetails(final String empId, final String name, final String phone, final String qualification, final String gender, final String address, final String skills, final String profileImgUrl, final String coverArtImgUrl) {
+        final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Updating User Profile", "Please Wait...", false, false);
+        StringRequest request = new StringRequest(Request.Method.POST, API_URLs.updateUserProfileDetailsAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Log.e(TAG, "UpdateResponse is: " + response);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.e(TAG, "Server returns error response");
+                progressDialog.dismiss();
+                Toast.makeText(getContext(), "Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+
+                /*
+                //check if all values are set or any null value exist
+                Log.e(TAG, "emp_id is: " + empId);
+                if (empId != null)
+                    params.put("emp_id", empId);
+
+                Log.e(TAG, "name is: " + name);
+                if (name != null)
+                    params.put("name", name);
+
+                Log.e(TAG, "phone is: " + phone);
+                if (phone != null)
+                    params.put("phone", phone);
+
+                Log.e(TAG, "qualification is: " + qualification);
+                if (qualification != null)
+                    params.put("qualification", qualification);
+
+                Log.e(TAG, "gender is: " + gender);
+                if (gender != null)
+                    params.put("gender", gender);
+
+                Log.e(TAG, "address is: " + address);
+                if (address != null)
+                    params.put("address", address);
+
+                Log.e(TAG, "coverArtImgUrl is: " + coverArtImgUrl);
+                if (coverArtImgUrl != null)
+                    params.put("img_cover_art_url", coverArtImgUrl);
+
+                Log.e(TAG, "skills is: " + skills);
+                if (skills != null)
+                    params.put("top_skills", skills);
+
+                Log.e(TAG, "profileImgUrl is: " + profileImgUrl);
+                if (profileImgUrl != null)
+                    params.put("profile_img_url", profileImgUrl);
+                Log.e(TAG, "||params :> " + params.toString());
+                */
+                params.put("emp_id", empId);
+                params.put("name", name);
+                params.put("gender", gender);
+                params.put("qualification", qualification);
+                params.put("phone", phone);
+                params.put("address", address);
+                params.put("top_skills", skills);
+                params.put("profile_img_url", profileImgUrl);
+                params.put("img_cover_art_url", coverArtImgUrl);
+                Log.e(TAG, "||params :> " + params.toString());
+                return params;
+            }
+        };
+        //for default retry policy
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        requestQueue.add(request);//add the request to requestQueue queue
+    }
+
+    /*
+    private void uploadNewPost() {
+
+        final ProgressDialog progressDialog = ProgressDialog.show(this, "Uploading new Post...", "Please Wait...", false, false);
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.imgUploadToServerAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Toast.makeText(StoriesUploadActivity.this, response, Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "ServerResponse is: " + response);
+                startActivity(new Intent(StoriesUploadActivity.this, ManagePostActivity.class));
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+
+                //HashMap for values
+                HashMap<String, String> params = new HashMap<>();
+
+                //finding values to be stored in the database
+                Calendar cal = Calendar.getInstance();
+                //creating Locale object for date formats
+                Locale myLocale = new Locale("en", "in");
+//                Locale standardLocale = Locale.US;
+
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", myLocale);
+                String mCurrentDate = sdf.format(cal.getTime());
+                sdf = new SimpleDateFormat("HH:mm:ss", myLocale); //using the same dateFormatter to get the time as well
+                String mCurrentTime = sdf.format(cal.getTime());
+
+                //get emp_id from the shared preference obj
+                HashMap<String, String> userDetails = sessionManager.getUserDetails();
+
+//              Log.e(TAG, "current Date is : " + mCurrentDate);
+//              Log.e(TAG, "current Time is : " + mCurrentTime);
+                String txtMsg = edPostTextMsg.getText().toString().trim();
+                String titleMsg = edPostTitle.getText().toString().trim();
+                Log.e(TAG, "txtTitle is : " + titleMsg + "| txtMsg is: " + txtMsg);
+                if (txtMsg.isEmpty()) {
+                    txtMsg = "null";
+                }
+                if (titleMsg.isEmpty()) {
+                    titleMsg = "null";
+                }
+//              Log.e(TAG, "emp_id is : " + userDetails.get("emp_id"));
+                //add more values here to be uploaded to the server
+                params.put("date", mCurrentDate);
+                params.put("times", mCurrentTime);
+                params.put("text_message", txtMsg);
+                params.put("title_message", titleMsg);
+                params.put("image_url", imageByteString);
+                params.put("added_by", userDetails.get("emp_id"));
+                Log.e(TAG, "params are : " + params.toString());
+                return params;
+            }
+        };
+        requestQueue.add(stringRequest);
+    }
+    */
+
+/*
     @SuppressLint("StaticFieldLeak")
     class UpdateEmpProfileData extends AsyncTask<Void, Void, String> {
         ProgressDialog progressDialog;
@@ -485,5 +659,6 @@ public class EditUserProfileFragment extends Fragment {
             }
         }
     }
+*/
 
 }
