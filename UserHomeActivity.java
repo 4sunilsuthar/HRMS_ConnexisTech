@@ -62,7 +62,7 @@ public class UserHomeActivity extends AppCompatActivity
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
@@ -88,6 +88,8 @@ public class UserHomeActivity extends AppCompatActivity
                         fragment = new UserProfileFragment();
                         fragment_manager.popBackStack();
                         fragmentTrans.replace(R.id.fragment_container1, fragment).addToBackStack("user_profile_fragment").commit();
+                        drawer.closeDrawer(GravityCompat.START);
+
                     }
                 });
                 super.onDrawerOpened(drawerView);
@@ -123,6 +125,21 @@ public class UserHomeActivity extends AppCompatActivity
             fragment = new ContentUserHomeFragment();
             fragmentTrans.add(R.id.fragment_container1, fragment).commit();
         }
+
+        //code for action bar profile image onClickListener
+        actionBarUserImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(UserHomeActivity.this, "Action Bar Button Called", Toast.LENGTH_SHORT).show();
+                //display view profile fragment
+                fragmentTrans = fragment_manager.beginTransaction();
+                fragment = new UserProfileFragment();
+                fragment_manager.popBackStack();
+                fragmentTrans.replace(R.id.fragment_container1, fragment).addToBackStack("user_profile_fragment").commit();
+
+
+            }
+        });
     }
 
     //function to saveLeaveDetails into the db
@@ -196,7 +213,6 @@ public class UserHomeActivity extends AppCompatActivity
         int id = item.getItemId();
         if (id == R.id.nav_home_feed) {
             fragmentTrans = fragment_manager.beginTransaction();
-
             fragment = new ContentUserHomeFragment();
             fragment_manager.popBackStack();
             fragmentTrans.replace(R.id.fragment_container1, fragment).addToBackStack("content_user_home_fragment").commit();
@@ -237,7 +253,16 @@ public class UserHomeActivity extends AppCompatActivity
             fragmentTrans.replace(R.id.fragment_container1, fragment).addToBackStack("user_profile_fragment").commit();
 
         } else if (id == R.id.nav_share) {
-            startActivity(new Intent(this, AdminDashboardActivity.class));
+
+            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+            sharingIntent.setType("text/plain");
+            String shareBody = "https://drive.google.com/drive/folders/1PBsaJ78jmSgi1KRF8mwxTFATSBZioUAx?usp=sharing";//link of the application (google drive link here)
+            String shareSub = "FlexiHR Download Link";
+            sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, shareSub);
+            sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
+            startActivity(Intent.createChooser(sharingIntent, "Share using"));
+
+//            startActivity(new Intent(this, AdminDashboardActivity.class)); gateway to the admin dashboard
 
         } else if (id == R.id.nav_about) {
 

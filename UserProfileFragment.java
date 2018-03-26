@@ -117,7 +117,8 @@ public class UserProfileFragment extends Fragment {
                 try {
                     Log.e(TAG, "ServerResponse is: " + response);
                     if (response.trim().equals("NoRecordFound")) {
-                        Log.e(TAG, "No Profile Found Show Dummy here");
+                        Log.e(TAG, "No Profile Found Show Dummy profile here");
+                        progressDialog.dismiss();
                         //showing dummy image when no image available
 //                        Picasso.with(getContext()).load(R.drawable.person).into(actionBarUserImg);
 //                        Picasso.with(UserHomeActivity.this).load(R.drawable.person).into(navHeaderUserImg);
