@@ -52,7 +52,8 @@ public class MyLeaveSummaryFragment extends Fragment {
         pendingRequestsList = new ArrayList<>();
         mRecyclerView = view.findViewById(R.id.pending_requests_user_list_recycler_view);
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext())); //for Vertical recycler view
+//        mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.HORIZONTAL,false)); //for horizontal recycler view
 
         //for leave summary
         leaveRequestSummary = new ArrayList<>();
@@ -147,7 +148,6 @@ public class MyLeaveSummaryFragment extends Fragment {
                     e.printStackTrace();
                 } catch (ParseException e) {
                     e.printStackTrace();
-
                 }
             }
         }, new Response.ErrorListener() {
