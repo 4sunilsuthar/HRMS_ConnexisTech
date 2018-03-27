@@ -18,16 +18,20 @@ public class ManageEmpDetailsActivity extends AppCompatActivity {
     Fragment fragment;
     FragmentTransaction fragmentTrans;
     Spinner spEmpNames;
+    SpinnerHelper sHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getSupportActionBar().hide();//hide the action bar for this activity
         setContentView(R.layout.activity_manage_emp_details);
         spEmpNames = findViewById(R.id.sp_emp_names);
+        //final SpinnerHelper spinnerHelper = new SpinnerHelper(ManageEmpDetailsActivity.this, spEmpNames);
         final SpinnerHelper spinnerHelper = new SpinnerHelper(ManageEmpDetailsActivity.this, spEmpNames);
+
         spinnerHelper.setSpinnerLayout(1000);
         spinnerHelper.fetchJSONEmpNames();
-
+        sHelper = spinnerHelper;
         spEmpNames.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 
             @Override
@@ -37,6 +41,9 @@ public class ManageEmpDetailsActivity extends AppCompatActivity {
                 spEmpNames.setSelection(position);
                 empId = spinnerHelper.dataAdapter.empGlobalId;
                 Log.e(TAG, "empId is: " + empId);
+//                savedInstanceState.putInt("empId", Integer.parseInt(empId));
+
+
                 viewFragment(spEmpNames);
                 Log.e(TAG, "Item Selected...");
                 //fetch the record of employee whose name is selected in the spinner
@@ -56,21 +63,32 @@ public class ManageEmpDetailsActivity extends AppCompatActivity {
 
         int id = view.getId();
         if (id == R.id.sp_emp_names) {
-            fragment = new UserProfileFragment();
+//            Bundle arguments = new Bundle(); arguments.putString( string_key , desired_string);
+//            fragment.setArguments(arguments);
+//            final FragmentTransaction ft = getFragmentManager().beginTransaction();
+//            ft.replace(R.id.content, fragment , FRAGMENT_TAG);
+//            ft.commit();
+            fragment = new UserProfileFragmentAdmin();
+            Bundle arguments = new Bundle();
+            arguments.putString("myEmpID", empId);
+            fragment.setArguments(arguments);
             fragment_manager.popBackStack();//popping all from backStack
             fragmentTrans.replace(R.id.fragment_container, fragment).addToBackStack("view_emp_details_fragment").commit();
         }
         if (id == R.id.btnEditEmpDetails) {
             fragment = new EditEmpDetailsFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString("myEmpID", empId);
+            fragment.setArguments(arguments);
             fragment_manager.popBackStack();//popping all from backStack
             fragmentTrans.replace(R.id.fragment_container, fragment).addToBackStack("edit_emp_details_fragment").commit();
         }
-        if (id == R.id.btnSetHierarchy) {
+        /*if (id == R.id.btnSetHierarchy) {
             Log.i("ABC", "In the Fragment Function");
             fragment = new SetHierarchyFragment();
             fragment_manager.popBackStack();//popping all from backStacks
             fragmentTrans.replace(R.id.fragment_container, fragment).addToBackStack("set_hierarchy_fragment").commit();
             Log.i("ABC", "Fragment Function Completed");
-        }
+        }*/
     }
 }

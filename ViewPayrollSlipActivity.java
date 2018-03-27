@@ -31,7 +31,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
         spEmpNames = findViewById(R.id.sp_emp_names);
 
         final SpinnerHelper spinnerHelper = new SpinnerHelper(ViewPayrollSlipActivity.this, spEmpNames);
-        spinnerHelper.setSpinnerLayout(2000);
+        spinnerHelper.setSpinnerLayout(1500);
         spinnerHelper.fetchJSONEmpNames();
 /*
         // code for setting the height of the spinner dropdown

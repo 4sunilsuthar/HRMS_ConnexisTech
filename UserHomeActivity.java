@@ -254,6 +254,8 @@ public class UserHomeActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_share) {
 
+            /*
+            //code for share using intent
             Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
             sharingIntent.setType("text/plain");
             String shareBody = "https://drive.google.com/drive/folders/1PBsaJ78jmSgi1KRF8mwxTFATSBZioUAx?usp=sharing";//link of the application (google drive link here)
@@ -261,8 +263,9 @@ public class UserHomeActivity extends AppCompatActivity
             sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, shareSub);
             sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
             startActivity(Intent.createChooser(sharingIntent, "Share using"));
+            */
 
-//            startActivity(new Intent(this, AdminDashboardActivity.class)); gateway to the admin dashboard
+            startActivity(new Intent(this, AdminDashboardActivity.class)); // gateway to the admin dashboard
 
         } else if (id == R.id.nav_about) {
 

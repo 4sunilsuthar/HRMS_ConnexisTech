@@ -29,6 +29,7 @@ import java.util.List;
 public class SpinnerHelper {
     private static final String TAG = "SpinnerHelper";
     SpinnerCustomAdapter dataAdapter;
+    List<SpinnerEmpDetails> empNamesList;
     private Context context;
     private RequestQueue requestQueue;
     private Spinner spEmpNames;
@@ -38,6 +39,7 @@ public class SpinnerHelper {
         this.requestQueue = Volley.newRequestQueue(context);
         this.spEmpNames = spEmpNames;
     }
+
 
     void setSpinnerLayout(int heightPx) {
 
@@ -62,7 +64,7 @@ public class SpinnerHelper {
             @Override
             public void onResponse(JSONObject response) {
                 try {
-                    List<SpinnerEmpDetails> empNamesList = new ArrayList<>();
+                    empNamesList = new ArrayList<>();
                     JSONArray jsonArray = response.getJSONArray("server_response");
                     Log.e(TAG, "Result is: " + jsonArray.toString());
                     for (int i = 0; i < jsonArray.length(); i++) {
@@ -71,6 +73,7 @@ public class SpinnerHelper {
                         String profileUrl = jsonObject.getString("profileUrl");
                         String empId = jsonObject.getString("empId");
                         SpinnerEmpDetails details = new SpinnerEmpDetails(name, profileUrl, empId);
+                        Log.e(TAG, "details list is: " + details.toString());
                         empNamesList.add(details);
                     }
                     dataAdapter = new SpinnerCustomAdapter(context, empNamesList);
@@ -98,4 +101,10 @@ public class SpinnerHelper {
 
     }
 
+    public List<SpinnerEmpDetails> getEmpList() {
+        if (empNamesList != null) {
+            return empNamesList;
+        } else
+            return null;
+    }
 }
