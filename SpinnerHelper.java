@@ -57,7 +57,7 @@ public class SpinnerHelper {
     }
 
     //volley background code to fetch emp details in the spinner
-    public void fetchJSONEmpNames() {
+    void fetchJSONEmpNames() {
 
         final ProgressDialog progressDialog = ProgressDialog.show(context, "Getting you on board", "Please Wait...", false, false);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, API_URLs.getEmpNamesAPIUrl, null, new Response.Listener<JSONObject>() {
@@ -100,7 +100,6 @@ public class SpinnerHelper {
 
 
     }
-
     public List<SpinnerEmpDetails> getEmpList() {
         if (empNamesList != null) {
             return empNamesList;

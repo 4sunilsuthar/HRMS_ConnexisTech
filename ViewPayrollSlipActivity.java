@@ -31,7 +31,7 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
         spEmpNames = findViewById(R.id.sp_emp_names);
 
         final SpinnerHelper spinnerHelper = new SpinnerHelper(ViewPayrollSlipActivity.this, spEmpNames);
-        spinnerHelper.setSpinnerLayout(1500);
+        spinnerHelper.setSpinnerLayout(1500);//setting the height for the spinner
         spinnerHelper.fetchJSONEmpNames();
 /*
         // code for setting the height of the spinner dropdown
@@ -118,6 +118,9 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
 
         if (view.getId() == R.id.sp_emp_names) {
             fragment = new ViewPayslipFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString("myEmpID", empId);
+            fragment.setArguments(arguments);
             fragment_manager.popBackStack();//popping all from backStack
             fragmentTrans.replace(R.id.fragment_container, fragment).commit();
         }
@@ -126,6 +129,9 @@ public class ViewPayrollSlipActivity extends FragmentActivity {
                 Toast.makeText(ViewPayrollSlipActivity.this, "Please Select Employee First!...", Toast.LENGTH_SHORT).show();
             } else {
                 fragment = new EditPaySlipFragment();
+                Bundle arguments = new Bundle();
+                arguments.putString("myEmpID", empId);
+                fragment.setArguments(arguments);
                 fragment_manager.popBackStack();
                 fragmentTrans.replace(R.id.fragment_container, fragment).commit();
                 //change button and its events

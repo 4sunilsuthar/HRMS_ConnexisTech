@@ -45,7 +45,6 @@ public class ContentUserHomeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_content_user_home, container, false);
-
         postStoryList = new ArrayList<>();
         mRecyclerView = view.findViewById(R.id.posts_list_recycler_view);
         mRecyclerView.setHasFixedSize(true);

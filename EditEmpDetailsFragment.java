@@ -254,7 +254,9 @@ public class EditEmpDetailsFragment extends Fragment {
                                 Picasso.with(getContext()).load(coverArtImgUrl).into(imgCoverArt);//assign user customized image
                             }
 
+                            Log.e(TAG, "profileImgUrl: " + profileImgUrl);
                             if (profileImgUrl.equals("null")) {
+                                Log.e(TAG, "image profile is null so show dummy person");
                                 Picasso.with(getContext()).load(R.drawable.person).into(imgEmpProfile);//showing dummy image when no image available
                             } else {
                                 Picasso.with(getContext()).load(profileImgUrl).into(imgEmpProfile);//assign user customized image
