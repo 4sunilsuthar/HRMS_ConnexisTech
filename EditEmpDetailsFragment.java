@@ -2,9 +2,12 @@ package com.lms.admin.lms;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,7 +54,7 @@ public class EditEmpDetailsFragment extends Fragment {
     List<SpinnerEmpDetails> myEmpList;
     List<SpinnerEmpDetails> list;
     private RequestQueue requestQueue;
-    private String name, title, email, reportingTo, profileImgUrl, coverArtImgUrl;
+    private String empId, name, title, email, reportingTo, profileImgUrl, coverArtImgUrl;
 
     @Nullable
     @Override
@@ -78,7 +81,7 @@ public class EditEmpDetailsFragment extends Fragment {
         //Call the function to upload the post to the server
         Bundle arguments = getArguments();
         assert arguments != null;
-        String empId = arguments.getString("myEmpID"); //getting the empId of the selected employee
+        empId = arguments.getString("myEmpID"); //getting the empId of the selected employee
         Log.e(TAG, "desired Emp Id in Edit is : " + empId);
         Log.e(TAG, "Calling volley request");
         getUserProfileDetails(empId);//passing empId to fetch user details//call the background task here to fetch initial data here if available
@@ -128,7 +131,7 @@ public class EditEmpDetailsFragment extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 //on selecting an item from spinner
                 spReportingTo.setSelection(position);
-                String reportingTo = spinnerHelper.dataAdapter.empGlobalId;
+                reportingTo = spinnerHelper.dataAdapter.empGlobalId;
                 Log.e(TAG, "reporting to: " + reportingTo);
                 //fetch the record of employee whose name is selected in the spinner
             }
@@ -139,6 +142,108 @@ public class EditEmpDetailsFragment extends Fragment {
             }
         });
 
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //code here to update user Profile details
+                //get all the values
+                //validate the values
+                //if validated then show alertDialog to confirm profile update
+                //#1. validations
+                final String empTitle, empEmail, empReportingToId;
+                Log.e(TAG, "empId is: " + empId);
+                empTitle = spDesignation.getSelectedItem().toString();
+                Log.e(TAG, "empTitle is:" + empTitle);
+                empEmail = edEmail.getText().toString().trim();
+                Log.e(TAG, "empEmail is:" + empEmail);
+//                empReportingToId = spReportingTo.getSelectedItem().toString();//get the Id of the selected User
+                //empReportingToId = spReportingTo.getSelectedItem().toString();//get the Id of the selected User
+                Log.e(TAG, "empReportingToId is:" + reportingTo);
+                empReportingToId = reportingTo;//setting the reporting to of the emp
+
+                //Log.e(TAG,"empReportingToId is:"+empReportingToId);
+
+
+                if (!TextUtils.isEmpty(empTitle) && TextUtils.isEmpty(empEmail) && TextUtils.isEmpty(empReportingToId)) {
+                    //Toast.makeText(getContext(), "Request Values are: leaveType: " + leaveType + " | leaveSubject: " + leaveSubject + " | leaveFrom: " + leaveFrom + " | leaveTill: " + leaveTill + " | totalDays: " + leaveTotalDays + " | leaveDesc: " + leaveDesc, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "fill all the values to continue", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                //all looks good continue
+                //#2. save the details in the database tbl_employees and set values as
+                // :> emp_id, leave_type_id,subject, date_from, date_to, total_days, description, status, request_date, response_date, response_from,total_leaves_remaining <:
+                // get specified values here
+                //get emp_id from the session_manager,
+                //get leaveType_id from ref_leave_type
+                //set status as pending
+                //set request date as today's date
+                //set response date and response_from as null
+                //don't change total_leaves_remaining as it will be changed at the time of leave approval
+
+                // #1.call the alertDialog for confirmation of registration
+                new AlertDialog.Builder(getContext(), R.style.CustomDialogTheme)
+                        .setIcon(R.drawable.ic_warning_white)
+                        .setTitle("Confirm Profile Update")
+                        .setMessage("Are You Sure You Want to Update Employee Profile?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Request for the Leave
+                                //get emp_id of the employee
+                                //we have that value in the empId
+
+                                //call the API to save these details into the database
+                                //invoke the function with the API call with volley
+                                updateEmpDetailsAdmin(empId, empTitle, empEmail, empReportingToId);
+
+                                //startActivity(new Intent(RegisterNewEmpActivity.this, AdminDashboardActivity.class));
+                            }
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //dismiss the alert dialog
+                                dialog.dismiss();
+                            }
+                        })
+                        .show().setCanceledOnTouchOutside(false);
+
+            }
+        });
+    }
+
+    private void updateEmpDetailsAdmin(final String empId, final String empTitle, final String empEmail, final String empReportingToId) {
+        final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Saving Employee Details", "Please Wait...", false, false);
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, API_URLs.updateEmpDetailsAdminAPIUrl, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                progressDialog.dismiss();
+                Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "ServerResponse is: " + response);
+                //move to main fragment showing posts
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                progressDialog.dismiss();
+                Toast.makeText(getContext(), "Network Error... Please Try again Later...", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Error is: " + error);
+
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("empId", empId);
+                params.put("empTitle", empTitle);
+                params.put("empEmail", empEmail);
+                params.put("empReportingToId", empReportingToId);
+                Log.e(TAG, "paramas sent: " + params);
+
+                return params;
+            }
+        };
+        requestQueue.add(stringRequest);
 
     }
 
@@ -206,6 +311,7 @@ public class EditEmpDetailsFragment extends Fragment {
                         Log.e(TAG, "profile<><><><> details are: " + jsonArray.toString());
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
+//                            empId = jsonObject.getString("emp_id");
                             name = jsonObject.getString("name");
                             email = jsonObject.getString("email");//get if want to print email address
                             title = jsonObject.getString("title");

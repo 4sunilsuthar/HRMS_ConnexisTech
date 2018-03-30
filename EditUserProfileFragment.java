@@ -175,29 +175,48 @@ public class EditUserProfileFragment extends Fragment {
 
 
                                 if (!TextUtils.isEmpty(edEmpName.getText().toString().trim())) {
+
                                     name = edEmpName.getText().toString().trim();
+                                } else {
+                                    //set qualification to null
+                                    name = "null";
                                 }
 
                                 if (!TextUtils.isEmpty(edEmpGender.getText().toString().trim())) {
                                     gender = edEmpGender.getText().toString().trim();
+                                } else {
+                                    //set qualification to null
+                                    gender = "null";
                                 }
 
                                 if (!TextUtils.isEmpty(edEmpQualification.getText().toString().trim())) {
+                                    Log.e(TAG, "edEmpQualification is NOT Empty");
                                     qualification = edEmpQualification.getText().toString().trim();
+                                } else {
+                                    //set qualification to null
+                                    qualification = "null";
                                 }
-                                /*if (TextUtils.isEmpty(qualification))
-                                    qualification = null;
-*/
+
                                 if (!TextUtils.isEmpty(edEmpPhone.getText().toString().trim())) {
                                     phone = edEmpPhone.getText().toString().trim();
+                                } else {
+                                    //set qualification to null
+                                    phone = "null";
                                 }
 
                                 if (!TextUtils.isEmpty(edEmpTopSkills.getText().toString().trim())) {
+                                    Log.e(TAG, "edEmpTopSkills is NOT Empty");
                                     skills = edEmpTopSkills.getText().toString().trim();
+                                } else {
+                                    //set qualification to null
+                                    skills = "null";
                                 }
 
                                 if (!TextUtils.isEmpty(edEmpAddress.getText().toString().trim())) {
                                     address = edEmpAddress.getText().toString().trim();
+                                } else {
+                                    //set qualification to null
+                                    address = "null";
                                 }
 
                                 //before creating URLConnection Compress and Convert ProfileImg and CoverImg into Strings
@@ -313,7 +332,7 @@ public class EditUserProfileFragment extends Fragment {
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jsonObject = jsonArray.getJSONObject(i);
                             name = jsonObject.getString("name");
-                            email = jsonObject.getString("email");//get if want to print email address
+//                            email = jsonObject.getString("email");//get if want to print email address
                             phone = jsonObject.getString("phone");
                             address = jsonObject.getString("address");
                             qualification = jsonObject.getString("qualification");
@@ -322,7 +341,7 @@ public class EditUserProfileFragment extends Fragment {
                             coverArtImgUrl = jsonObject.getString("coverArtImgUrl");
                             profileImgUrl = jsonObject.getString("profileImgUrl");
 
-//                    checking if any value is null then hide that layout from the main screen
+//                    checking if any value is null then show empty EditText on the screen
                             if (name.equals("null")) {
                                 Log.e(TAG, "name is Null");
                                 edEmpName.setText("");
@@ -331,12 +350,14 @@ public class EditUserProfileFragment extends Fragment {
                             }
 
                             if (gender.equals("null")) {
+                                Log.e(TAG, "gender is Null");
                                 edEmpGender.setText("");
                             } else {
                                 edEmpGender.setText(gender);
                             }
 
                             if (phone.equals("null")) {
+                                Log.e(TAG, "phone is Null");
                                 edEmpPhone.setText("");
                             } else {
                                 edEmpPhone.setText(phone);
@@ -356,7 +377,7 @@ public class EditUserProfileFragment extends Fragment {
                             }
 
                             if (qualification.equals("null")) {
-                                edEmpQualification.setText("");//set empty value here
+                                edEmpQualification.setText("");//   set empty value here
                             } else {
                                 edEmpQualification.setText(qualification);
                             }
@@ -405,6 +426,7 @@ public class EditUserProfileFragment extends Fragment {
         requestQueue.add(request);//add the request to requestQueue queue
     }
 
+    //volley background code to update emp profile details
     private void updateUserProfileDetails(final String empId, final String name, final String phone, final String qualification, final String gender, final String address, final String skills, final String profileImgUrl, final String coverArtImgUrl) {
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Updating User Profile", "Please Wait...", false, false);
         StringRequest request = new StringRequest(Request.Method.POST, API_URLs.updateUserProfileDetailsAPIUrl, new Response.Listener<String>() {
