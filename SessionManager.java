@@ -15,10 +15,11 @@ import java.util.HashMap;
 
 public class SessionManager {
     // User name (make variable public to access from outside)
-    static final String KEY_EMP_ID = "emp_id";
     // Email address (make variable public to access from outside)
-    private static final String KEY_EMAIL = "email";
+    private static final String KEY_EMP_ID = "emp_id";
     private static final String KEY_EMP_NAME = "name";
+    private static final String KEY_EMAIL = "email";
+
     // SharedPref file name
     private static final String PREF_NAME = "HRMSAppPref";
     // All Shared Preferences Keys
@@ -148,7 +149,12 @@ public class SessionManager {
         return pref.getString(KEY_EMP_NAME, null);
     }
 
-
+    void setUserName(String newEmpName) {
+        // Storing/Updating name in pref
+        editor.putString(KEY_EMP_NAME, newEmpName);
+        // commit changes
+        editor.commit();
+    }
 
     String getEmpId() {
         return pref.getString(KEY_EMP_ID, null);

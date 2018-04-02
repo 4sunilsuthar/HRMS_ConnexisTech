@@ -3,6 +3,7 @@ package com.lms.admin.lms;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -51,7 +52,6 @@ public class EditEmpDetailsFragment extends Fragment {
     TextView tvEmpName;
     EditText edEmail;
     Button btnUpdate;
-    List<SpinnerEmpDetails> myEmpList;
     List<SpinnerEmpDetails> list;
     private RequestQueue requestQueue;
     private String empId, name, title, email, reportingTo, profileImgUrl, coverArtImgUrl;
@@ -218,8 +218,9 @@ public class EditEmpDetailsFragment extends Fragment {
             @Override
             public void onResponse(String response) {
                 progressDialog.dismiss();
-                Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), response, Toast.LENGTH_SHORT).show();//show server response here
                 Log.e(TAG, "ServerResponse is: " + response);
+                startActivity(new Intent(getContext(), AdminDashboardActivity.class));//move back to dashboard
                 //move to main fragment showing posts
             }
         }, new Response.ErrorListener() {

@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -18,9 +19,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -52,11 +57,12 @@ public class EditUserProfileFragment extends Fragment {
     private static final int PICK_COVER_IMAGE = 9;
     String name, phone, qualification, gender, address, skills, coverArtImgUrl, profileImgUrl;
     Bitmap bitmapProfile, bitmapCoverArt;
-    private EditText edEmpName, edEmpGender, edEmpPhone, edEmpAddress, edEmpTopSkills, edEmpQualification;
+    String[] genderNames = {"Male", "Female"};
+    private EditText edEmpName, edEmpPhone, edEmpAddress, edEmpTopSkills, edEmpQualification;
+    private Spinner spEmpGender;
     private ImageView imgCoverArt;
     private CircleImageView imgEmpProfile;
     private RequestQueue requestQueue;
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,7 +99,7 @@ public class EditUserProfileFragment extends Fragment {
         // get all the values here
         Button btnUpdateProfile = getView().findViewById(R.id.btn_save_profile);
         edEmpName = getView().findViewById(R.id.ed_edit_emp_name);
-        edEmpGender = getView().findViewById(R.id.ed_edit_gender);
+        spEmpGender = getView().findViewById(R.id.sp_edit_gender);
         edEmpPhone = getView().findViewById(R.id.ed_edit_phone);
         edEmpAddress = getView().findViewById(R.id.ed_edit_address);
         edEmpTopSkills = getView().findViewById(R.id.ed_edit_top_skills);
@@ -101,7 +107,8 @@ public class EditUserProfileFragment extends Fragment {
 //        tvEmpEmail = getView().findViewById(R.id.ed_edit_email);
         imgCoverArt = getView().findViewById(R.id.img_edit_cover_art);
         imgEmpProfile = getView().findViewById(R.id.img_edit_profile_image);
-//        setting the pencil buttons
+
+        //        setting the pencil buttons
         ImageView imgBtnEditEmpProfile = getView().findViewById(R.id.btn_update_profile_image);
         ImageView imgBtnEditCoverArt = getView().findViewById(R.id.btn_update_cover_art);
 
@@ -109,6 +116,24 @@ public class EditUserProfileFragment extends Fragment {
         //also make sure only values existing are to be shown
         //hide other layouts completely
         //execute the background task and perform desired operations
+
+        //get Gender Values in Spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, genderNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spEmpGender.setAdapter(adapter);
+
+        spEmpGender.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                TextView tmpView = spEmpGender.getSelectedView().findViewById(android.R.id.text1);
+                tmpView.setTextColor(Color.WHITE);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         //profile Update imgBtn Listener Here
         imgBtnEditEmpProfile.setOnClickListener(new View.OnClickListener() {
@@ -178,12 +203,12 @@ public class EditUserProfileFragment extends Fragment {
 
                                     name = edEmpName.getText().toString().trim();
                                 } else {
-                                    //set qualification to null
+                                    //set name to null
                                     name = "null";
                                 }
 
-                                if (!TextUtils.isEmpty(edEmpGender.getText().toString().trim())) {
-                                    gender = edEmpGender.getText().toString().trim();
+                                if (!TextUtils.isEmpty(spEmpGender.getSelectedItem().toString().trim())) {
+                                    gender = spEmpGender.getSelectedItem().toString().trim();
                                 } else {
                                     //set qualification to null
                                     gender = "null";
@@ -200,7 +225,7 @@ public class EditUserProfileFragment extends Fragment {
                                 if (!TextUtils.isEmpty(edEmpPhone.getText().toString().trim())) {
                                     phone = edEmpPhone.getText().toString().trim();
                                 } else {
-                                    //set qualification to null
+                                    //set phone to null
                                     phone = "null";
                                 }
 
@@ -208,14 +233,14 @@ public class EditUserProfileFragment extends Fragment {
                                     Log.e(TAG, "edEmpTopSkills is NOT Empty");
                                     skills = edEmpTopSkills.getText().toString().trim();
                                 } else {
-                                    //set qualification to null
+                                    //set skills to null
                                     skills = "null";
                                 }
 
                                 if (!TextUtils.isEmpty(edEmpAddress.getText().toString().trim())) {
                                     address = edEmpAddress.getText().toString().trim();
                                 } else {
-                                    //set qualification to null
+                                    //set address to null
                                     address = "null";
                                 }
 
@@ -241,8 +266,7 @@ public class EditUserProfileFragment extends Fragment {
                                 Log.e(TAG, "Calling volley request");
                                 updateUserProfileDetails(new SessionManager(getContext()).getEmpId(), name, phone, qualification, gender, address, skills, profileImgUrl, coverArtImgUrl);//passing empId to update user details
 
-                                //now go to user home feeds
-//                                startActivity(new Intent(RegisterNewEmpActivity.this, AdminDashboardActivity.class));
+
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -351,9 +375,9 @@ public class EditUserProfileFragment extends Fragment {
 
                             if (gender.equals("null")) {
                                 Log.e(TAG, "gender is Null");
-                                edEmpGender.setText("");
+                                spEmpGender.setSelection(0);//select first item at start or when not provided
                             } else {
-                                edEmpGender.setText(gender);
+                                spEmpGender.setSelection(getIndex(spEmpGender, gender));
                             }
 
                             if (phone.equals("null")) {
@@ -426,6 +450,20 @@ public class EditUserProfileFragment extends Fragment {
         requestQueue.add(request);//add the request to requestQueue queue
     }
 
+    //private method of your class
+    //method to get gender as selected item
+    private int getIndex(Spinner spEmpGender, String gender) {
+        int index = 0;
+        for (int i = 0; i < spEmpGender.getCount(); i++) {
+            if (spEmpGender.getItemAtPosition(i).toString().equalsIgnoreCase(gender)) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    }
+
+
     //volley background code to update emp profile details
     private void updateUserProfileDetails(final String empId, final String name, final String phone, final String qualification, final String gender, final String address, final String skills, final String profileImgUrl, final String coverArtImgUrl) {
         final ProgressDialog progressDialog = ProgressDialog.show(getContext(), "Updating User Profile", "Please Wait...", false, false);
@@ -434,6 +472,11 @@ public class EditUserProfileFragment extends Fragment {
             public void onResponse(String response) {
                 progressDialog.dismiss();
                 Log.e(TAG, "UpdateResponse is: " + response);
+                Toast.makeText(getContext(), "Profile Updated Successfully!!!", Toast.LENGTH_SHORT).show();
+                //now go to user home feeds
+                new SessionManager(getContext()).setUserName(name);
+                Intent intent = new Intent(getContext(), UserHomeActivity.class);
+                startActivity(intent);
 
             }
         }, new Response.ErrorListener() {

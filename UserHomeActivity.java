@@ -74,6 +74,7 @@ public class UserHomeActivity extends AppCompatActivity
                     Picasso.with(UserHomeActivity.this).load(empProfileImgUrl).into(navHeaderUserImg);//assign user customized image
                 if (new SessionManager(UserHomeActivity.this).getUserName() != null) {   //show name here
                     TextView tvUserName = findViewById(R.id.tvNavigationBarUserName);
+                    Log.e(TAG, "user name fetched from SharedPref is: " + new SessionManager(UserHomeActivity.this).getUserName());
                     tvUserName.setText(new SessionManager(UserHomeActivity.this).getUserName());
                 }
                 if (new SessionManager(UserHomeActivity.this).getUserEmail() != null) {   //show email here

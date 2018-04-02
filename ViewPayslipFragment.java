@@ -6,7 +6,10 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -58,7 +62,7 @@ public class ViewPayslipFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         btnEditSalary = getView().findViewById(R.id.btnEditSalary);
-        btnUpdateSalary = getView().findViewById(R.id.btnUpdateSalary);
+        btnUpdateSalary = getView().findViewById(R.id.btnUpdateSalaryViewSlip);
 
         edNetSalary = getView().findViewById(R.id.tv_payslip_structure_net_salary);
         listViewPayrollStructure = getView().findViewById(R.id.payrollStructureList);
@@ -80,9 +84,54 @@ public class ViewPayslipFragment extends Fragment {
         btnEditSalary.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                //onclick of this button send bundle of listview details to the next fragment
+                //Put the value
+                FragmentManager fragment_manager;
+                FragmentTransaction fragmentTrans;
+                fragment_manager = getActivity().getSupportFragmentManager();
+                fragment_manager.popBackStack();
+                fragmentTrans = fragment_manager.beginTransaction();
+
+                Fragment fragment = new EditPaySlipFragment();
+                Bundle arguments = new Bundle();
+
+//                arguments.putString("myEmpID", empId);
+//                fragment.setArguments(arguments);
+
+//                get all the values in the Bundle and then pass it with fragment.setArguments
+                ListView listViewPayrollStructure = getView().findViewById(R.id.payrollStructureList);
+                View mView;
+                TextView tvTitle;
+                EditText edValue;
+                int listLength = listViewPayrollStructure.getChildCount();
+                Log.e(TAG, "Length of list is: " + listLength);
+//        String[] valueOfEditText = new String[listLength];
+                for (int i = 0; i < listLength; i++) {
+                    mView = listViewPayrollStructure.getChildAt(i);
+                    tvTitle = mView.findViewById(R.id.tv_payslip_structure_title);
+                    edValue = mView.findViewById(R.id.tv_payslip_structure_value);
+                    Log.e(TAG, "value of " + tvTitle.getText().toString() + ": " + edValue.getText().toString());
+                    arguments.putString(tvTitle.getText().toString(), edValue.getText().toString());
+
+//                    edValue.setFocusable(true);
+//                    edValue.setEnabled(true);
+//                    edValue.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
+//            valueOfEditText[i] = et.getText().toString();
+                }
+//
+//                arguments.putString("your key", "YourValue");
+                fragment.setArguments(arguments);
+                fragmentTrans.replace(R.id.fragment_container, fragment).commit();
+                //change button and its events
+
+
+                //Inflate the fragment
+//                getFragmentManager().beginTransaction().add(R.id.container, ldf).commit();
+
                 //get salary sum
-                setEditable();//set EditText as Editable and focusable
-                getSalarySum();
+//                setEditable();//set EditText as Editable and focusable
+//                getSalarySum();
 
                 //set all the EditText as Editable and Focusable
 
@@ -140,7 +189,7 @@ public class ViewPayslipFragment extends Fragment {
                                 //saveLeaveDetails(empId, leaveType, leaveSubject, leaveFrom, leaveTill, leaveTotalDays, leaveDesc, requestDate);
                                 //find the higher Authority from db (to whom I am Reporting )
                                 //sending leave request notification to the higher authority
-                                Log.e(TAG, "Calling sendNotification()...");
+//                                Log.e(TAG, "Calling sendNotification()...");
                                 //sendNotification(new SessionManager(getContext()).getUserName());//pass employee name to the function to display it in the notification
                                 //show home posts fragment after background request
                                 //startActivity(new Intent(RegisterNewEmpActivity.this, AdminDashboardActivity.class));
@@ -171,8 +220,10 @@ public class ViewPayslipFragment extends Fragment {
         for (int i = 0; i < listLength; i++) {
             v = lvName.getChildAt(i);
             et = v.findViewById(R.id.tv_payslip_structure_value);
+            Log.e(TAG, "value of et: " + et.getText().toString());
             et.setFocusable(true);
             et.setEnabled(true);
+            et.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
 //            valueOfEditText[i] = et.getText().toString();
         }
 //        Log.e(TAG,"valueOfEditText : "+ Arrays.toString(valueOfEditText));
@@ -226,7 +277,7 @@ public class ViewPayslipFragment extends Fragment {
                         progressDialog.dismiss();
                     } else {
                         JSONObject jsonObjectResponse = new JSONObject(response);
-                        String title, value, email, phone, qualification, gender, address, dateOfJoining, reportingTo, skills, coverArtImgUrl, profileImgUrl;
+                        String title, value;
                         JSONArray jsonArray = jsonObjectResponse.getJSONArray("server_response");
                         Log.e(TAG, "Structure<><><><> details are: " + jsonArray.toString());
                         for (int i = 0; i < jsonArray.length(); i++) {
@@ -234,96 +285,10 @@ public class ViewPayslipFragment extends Fragment {
                             title = jsonObject.getString("title");
                             value = jsonObject.getString("value");
 
-                            //got the values now send them to the POJO Class
+                            //got the values now send them to the POJO (Model) Class
                             PayrollStructure payrollStructure = new PayrollStructure(title, value);
                             payrollStructureAdapter.add(payrollStructure);
-
                             // getSalarySum();//to get the total salary
-
-                            /*email = jsonObject.getString("email");
-                            phone = jsonObject.getString("phone");
-                            address = jsonObject.getString("address");
-                            qualification = jsonObject.getString("qualification");
-                            gender = jsonObject.getString("gender");
-                            dateOfJoining = jsonObject.getString("dateOfJoining");
-                            reportingTo = jsonObject.getString("reportingTo");
-                            skills = jsonObject.getString("skills");
-                            coverArtImgUrl = jsonObject.getString("coverArtImgUrl");
-                            profileImgUrl = jsonObject.getString("profileImgUrl");*/
-
-
-
-                            /*
-                            //                    checking if any value is null then hide that layout from the main screen
-                            if (value.equals("null")) {
-                                Log.e(TAG, "value is Null");
-                                getView().findViewById(R.id.layout_emp_name).setVisibility(View.GONE);
-                            } else {
-                                tvEmpName.setText(name);
-                            }
-
-                            if (address.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_address).setVisibility(View.GONE);
-                            } else {
-                                tvEmpAddress.setText(address);
-                            }
-
-                            if (title.equals("null")) {
-                                Log.e(TAG, "title is Null");
-                                getView().findViewById(R.id.layout_emp_title).setVisibility(View.GONE);
-                            } else {
-                                tvEmpTitle.setText(title);
-                            }
-                            if (gender.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_gender).setVisibility(View.GONE);
-                            } else {
-                                tvEmpGender.setText(gender);
-                            }
-
-                            if (email.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_email).setVisibility(View.GONE);
-                            } else {
-                                tvEmpEmail.setText(email);
-                            }
-
-                            if (qualification.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_qualification).setVisibility(View.GONE);
-                            } else {
-                                tvEmpQualification.setText(qualification);
-                            }
-
-                            if (phone.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_phone).setVisibility(View.GONE);
-                            } else {
-                                tvEmpPhone.setText(phone);
-                            }
-
-                            if (dateOfJoining.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_date_of_joining).setVisibility(View.GONE);
-                            } else {
-                                tvEmpDateOfJoining.setText(dateOfJoining);
-                            }
-
-                            if (skills.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_top_skills).setVisibility(View.GONE); //hiding the unavailable layout fields
-                            } else {
-                                tvEmpTopSkills.setText(skills);
-                            }
-                            if (reportingTo.equals("null")) {
-                                getView().findViewById(R.id.layout_emp_reporting_to).setVisibility(View.GONE);
-                            } else {
-                                tvEmpReportingTo.setText(reportingTo);
-                            }
-                            if (coverArtImgUrl.equals("null")) {
-                                Picasso.with(getContext()).load(R.drawable.picture_post2).into(imgCoverArt);//showing dummy image when no image available
-                            } else {
-                                Picasso.with(getContext()).load(coverArtImgUrl).into(imgCoverArt);//assign user customized image
-                            }
-                            if (profileImgUrl.equals("null")) {
-                                Picasso.with(getContext()).load(R.drawable.person).into(imgEmpProfile);//showing dummy image when no image available
-                            } else {
-                                Picasso.with(getContext()).load(profileImgUrl).into(imgEmpProfile);//assign user customized image
-                            }*/
                         }
                         progressDialog.dismiss();
                     }
